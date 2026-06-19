@@ -43,6 +43,8 @@ IMAGEKIT_FOLDER=/studentflow
 
 Скрипт встановлює залежності, застосовує Supabase-міграції, наповнює порожню базу початковими даними, синхронізує ImageKit за наявності ключів, запускає сайт і відкриває браузер.
 
+Для `SUPABASE_DB_URL` краще брати `Session pooler` connection string у Supabase `Connect`, якщо direct URI не підключається локально. Direct host `db.<project-ref>.supabase.co` часто доступний тільки через IPv6, а pooler працює через IPv4.
+
 Ручний запуск:
 
 ```powershell

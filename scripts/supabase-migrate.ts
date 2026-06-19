@@ -10,6 +10,7 @@ if (!databaseUrl) {
 
 const sql = postgres(databaseUrl, {
   max: 1,
+  prepare: false,
   ssl: databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1') ? false : 'require',
 });
 
