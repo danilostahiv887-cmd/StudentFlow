@@ -1,0 +1,35 @@
+/* Final visual contrast pass for dark product surfaces. */
+.category-strip a,
+.category-strip a:visited,
+.category-strip b {
+  color: #f8f6ef;
+}
+
+.category-strip small {
+  color: #d5d2c8;
+}
+
+.category-strip a:hover,
+.category-strip a:focus-visible {
+  color: #ffffff;
+}
+
+.activity-card {
+  color: var(--ink);
+}
+
+.pulse-band .section-heading h2 {
+  color: #ffffff;
+}
+
+.pulse-band .section-heading p {
+  color: #cfccd2;
+}
+
+/* Keep operational screens focused on actions and data, not implementation copy. */
+.hero-content > p:not(.eyebrow),
+.page-intro > p,
+.timeline-step p,
+.setup p:not(.eyebrow) {
+  display: none;
+}
