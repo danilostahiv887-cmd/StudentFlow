@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { actor, failure, success } from '@/server/api';
 import { DomainError } from '@/server/services';
-import { imagekitClient } from '@/server/imagekit';
+import { deleteImageKitFile, imagekitClient } from '@/server/imagekit';
 
 const maxBytes = 5 * 1024 * 1024;
 
@@ -38,6 +38,18 @@ export async function POST(request: Request) {
       height: uploaded.height,
       fileName: uploaded.name ?? fileName,
     });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await actor();
+    const body = await request.json().catch(() => ({})) as { fileId?: string; fileIds?: unknown };
+    const fileIds = Array.isArray(body.fileIds) ? body.fileIds.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())) : body.fileId ? [body.fileId] : [];
+    for (const fileId of fileIds) await deleteImageKitFile(fileId);
+    return success();
   } catch (error) {
     return failure(error);
   }

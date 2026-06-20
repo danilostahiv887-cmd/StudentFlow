@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState, type ChangeEvent } from 'react';
+import { useId, useRef, useState, type ChangeEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { UploadCloud, Trash2, Image as ImageIcon } from 'lucide-react';
 import { AppButton, AppInput, AppSelect, AppTextarea, FieldError, FormErrorSummary } from '@/components/ui/primitives';
@@ -8,7 +8,8 @@ import { AppModal, ConfirmDialog } from '@/components/ui/dialogs';
 import { useToast } from '@/components/ui/toast';
 
 type ApiResult = { success: boolean; formError?: string; fieldErrors?: Record<string, string[]>; data?: Record<string, unknown> & { role?: string } };
-type UploadedImage = { url: string; fileId?: string; fileName?: string; thumbnailUrl?: string };
+type UploadedMedia = { fileId?: string };
+const maxImageBytes = 5 * 1024 * 1024;
 
 async function request(url: string, method: string, body?: unknown): Promise<ApiResult> {
   const response = await fetch(url, {
@@ -21,6 +22,63 @@ async function request(url: string, method: string, body?: unknown): Promise<Api
 
 function formValues(form: HTMLFormElement) {
   return Object.fromEntries(new FormData(form)) as Record<string, string>;
+}
+
+function setImageField(root: HTMLElement, field: string, value: string) {
+  const input = root.querySelector<HTMLInputElement>(`input[data-image-field="${field}"]`);
+  if (input) input.value = value;
+}
+
+async function cleanupUploadedImages(uploads: UploadedMedia[]) {
+  const fileIds = uploads.map((item) => item.fileId).filter(Boolean);
+  if (!fileIds.length) return;
+  await fetch('/api/media', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileIds }),
+  }).catch(() => undefined);
+}
+
+async function uploadPendingImages(form: HTMLFormElement) {
+  const uploads: UploadedMedia[] = [];
+  const inputs = Array.from(form.querySelectorAll<HTMLInputElement>('input[data-image-upload="true"]'));
+  for (const input of inputs) {
+    const file = input.files?.[0];
+    if (!file) continue;
+    if (!file.type.startsWith('image/')) throw new Error('Можна завантажувати лише зображення.');
+    if (file.size > maxImageBytes) throw new Error('Зображення має бути до 5 МБ.');
+    const root = input.closest<HTMLElement>('.image-picker');
+    if (!root) continue;
+    const payload = new FormData();
+    payload.set('file', file);
+    payload.set('folder', input.dataset.folder || '/studentflow/forms');
+    const response = await fetch('/api/media', { method: 'POST', body: payload });
+    const result = (await response.json()) as ApiResult;
+    if (!response.ok || !result.success) throw new Error(result.formError ?? 'Не вдалося завантажити зображення.');
+    const data = result.data ?? {};
+    const url = String(data.url ?? '');
+    if (!url) throw new Error('Не вдалося підготувати зображення для форми.');
+    const upload = { fileId: typeof data.fileId === 'string' ? data.fileId : undefined };
+    uploads.push(upload);
+    setImageField(root, 'url', url);
+    setImageField(root, 'fileId', upload.fileId ?? '');
+    setImageField(root, 'fileName', typeof data.fileName === 'string' ? data.fileName : file.name);
+    setImageField(root, 'thumbnailUrl', typeof data.thumbnailUrl === 'string' ? data.thumbnailUrl : url);
+    setImageField(root, 'remove', 'false');
+  }
+  return uploads;
+}
+
+async function requestWithImages(form: HTMLFormElement, submit: (values: Record<string, string>) => Promise<ApiResult>) {
+  const uploads = await uploadPendingImages(form);
+  try {
+    const result = await submit(formValues(form));
+    if (!result.success) await cleanupUploadedImages(uploads);
+    return result;
+  } catch (error) {
+    await cleanupUploadedImages(uploads);
+    throw error;
+  }
 }
 
 function ImagePicker({
@@ -39,54 +97,38 @@ function ImagePicker({
   folder?: string;
 }) {
   const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(initialUrl);
-  const [uploaded, setUploaded] = useState<UploadedImage | null>(null);
   const [removed, setRemoved] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [selectedName, setSelectedName] = useState<string>();
   const [error, setError] = useState<string>();
-  const effectiveUrl = removed ? '' : uploaded?.url ?? '';
 
-  const upload = async (event: ChangeEvent<HTMLInputElement>) => {
+  const selectImage = (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     if (!file) return;
     setError(undefined);
-    setRemoved(false);
-    const localPreview = URL.createObjectURL(file);
-    setPreview(localPreview);
-    setUploading(true);
-    try {
-      const payload = new FormData();
-      payload.set('file', file);
-      payload.set('folder', folder);
-      const response = await fetch('/api/media', { method: 'POST', body: payload });
-      const result = (await response.json()) as ApiResult;
-      if (!response.ok || !result.success) throw new Error(result.formError ?? 'Не вдалося завантажити зображення.');
-      const data = result.data ?? {};
-      const url = String(data.url ?? '');
-      if (!url) throw new Error('Не вдалося підготувати зображення для форми.');
-      setUploaded({
-        url,
-        fileId: typeof data.fileId === 'string' ? data.fileId : undefined,
-        fileName: typeof data.fileName === 'string' ? data.fileName : file.name,
-        thumbnailUrl: typeof data.thumbnailUrl === 'string' ? data.thumbnailUrl : undefined,
-      });
-      setPreview(url);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не вдалося завантажити зображення.');
-      setUploaded(null);
-      setPreview(initialUrl);
-    } finally {
-      setUploading(false);
+    if (!file.type.startsWith('image/')) {
+      setError('Можна завантажувати лише зображення.');
       input.value = '';
+      return;
     }
+    if (file.size > maxImageBytes) {
+      setError('Зображення має бути до 5 МБ.');
+      input.value = '';
+      return;
+    }
+    setRemoved(false);
+    setSelectedName(file.name);
+    setPreview(URL.createObjectURL(file));
   };
 
   const clear = () => {
     setPreview('');
-    setUploaded(null);
     setRemoved(true);
+    setSelectedName(undefined);
     setError(undefined);
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   return (
@@ -104,21 +146,22 @@ function ImagePicker({
       <div className="image-picker-actions">
         <label className="button button-secondary" htmlFor={inputId}>
           <UploadCloud size={16} aria-hidden />
-          {uploading ? 'Завантаження…' : preview ? 'Замінити' : 'Вибрати файл'}
+          {preview ? 'Замінити' : 'Вибрати файл'}
         </label>
-        <input id={inputId} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void upload(event)} disabled={uploading} />
-        <AppButton type="button" variant="ghost" onClick={clear} disabled={!preview || uploading}>
+        <input ref={inputRef} id={inputId} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" data-image-upload="true" data-folder={folder} onChange={selectImage} />
+        <AppButton type="button" variant="ghost" onClick={clear} disabled={!preview}>
           <Trash2 size={16} aria-hidden />
           Видалити
         </AppButton>
       </div>
+      {selectedName && <p className="image-status">Буде завантажено після збереження: {selectedName}</p>}
       {error && <p className="field-error">{error}</p>}
-      <input type="hidden" name={urlFieldName} value={effectiveUrl} readOnly />
-      <input type="hidden" name="imageFileId" value={removed ? '' : uploaded?.fileId ?? ''} readOnly />
-      <input type="hidden" name="imageFileName" value={removed ? '' : uploaded?.fileName ?? ''} readOnly />
-      <input type="hidden" name="imageThumbnailUrl" value={removed ? '' : uploaded?.thumbnailUrl ?? ''} readOnly />
-      <input type="hidden" name="imageAlt" value={altBase} readOnly />
-      <input type="hidden" name="removeImage" value={removed ? 'true' : 'false'} readOnly />
+      <input type="hidden" name={urlFieldName} data-image-field="url" defaultValue="" />
+      <input type="hidden" name="imageFileId" data-image-field="fileId" defaultValue="" />
+      <input type="hidden" name="imageFileName" data-image-field="fileName" defaultValue="" />
+      <input type="hidden" name="imageThumbnailUrl" data-image-field="thumbnailUrl" defaultValue="" />
+      <input type="hidden" name="imageAlt" data-image-field="alt" value={altBase} readOnly />
+      <input type="hidden" name="removeImage" data-image-field="remove" value={removed ? 'true' : 'false'} readOnly />
     </section>
   );
 }
@@ -191,13 +234,19 @@ export function ReportDialog({ applicationId, title, initialEvidenceUrl }: { app
   const { push } = useToast();
   const router = useRouter();
   const submit = async (form: HTMLFormElement) => {
+    setError(undefined);
     setPending(true);
-    const result = await request('/api/reports', 'POST', { applicationId, ...formValues(form) });
-    setPending(false);
-    if (!result.success) return setError(result.formError);
-    setOpen(false);
-    push('Доказ передано ментору.');
-    router.refresh();
+    try {
+      const result = await requestWithImages(form, (values) => request('/api/reports', 'POST', { applicationId, ...values }));
+      if (!result.success) return setError(result.formError);
+      setOpen(false);
+      push('Доказ передано ментору.');
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не вдалося передати доказ.');
+    } finally {
+      setPending(false);
+    }
   };
   return (
     <>
@@ -332,13 +381,19 @@ export function AdminCreateDialog({ kind, teachers = [], categories = [], clubs 
   const router = useRouter();
   const heading = kind === 'teacher' ? 'Створити ментора' : kind === 'activity' ? 'Створити можливість' : 'Додати довідник';
   const submit = async (form: HTMLFormElement) => {
+    setError(undefined);
     setPending(true);
-    const result = await request('/api/admin', 'POST', { action: kind, ...formValues(form) });
-    setPending(false);
-    if (!result.success) return setError(result.formError);
-    setOpen(false);
-    push('Дані збережено.');
-    router.refresh();
+    try {
+      const result = await requestWithImages(form, (values) => request('/api/admin', 'POST', { action: kind, ...values }));
+      if (!result.success) return setError(result.formError);
+      setOpen(false);
+      push('Дані збережено.');
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не вдалося зберегти дані.');
+    } finally {
+      setPending(false);
+    }
   };
   return (
     <>
@@ -417,13 +472,19 @@ export function AdminCrudActions({ entity, id, title, fields }: { entity: string
   const { push } = useToast();
   const router = useRouter();
   const save = async (form: HTMLFormElement) => {
+    setError(undefined);
     setPending(true);
-    const result = await request('/api/admin', 'PUT', { entity, id, values: formValues(form) });
-    setPending(false);
-    if (!result.success) return setError(result.formError);
-    setEditOpen(false);
-    push('Зміни збережено.');
-    router.refresh();
+    try {
+      const result = await requestWithImages(form, (values) => request('/api/admin', 'PUT', { entity, id, values }));
+      if (!result.success) return setError(result.formError);
+      setEditOpen(false);
+      push('Зміни збережено.');
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не вдалося зберегти зміни.');
+    } finally {
+      setPending(false);
+    }
   };
   const remove = async () => {
     const result = await request('/api/admin', 'DELETE', { entity, id });
