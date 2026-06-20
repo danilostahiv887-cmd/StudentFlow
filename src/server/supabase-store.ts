@@ -28,12 +28,12 @@ type TableName =
   | 'studentBadges';
 
 const tableOrder: TableName[] = [
-  'profiles',
   'specialities',
   'groups',
+  'profiles',
   'mediaAssets',
-  'clubs',
   'categories',
+  'clubs',
   'activities',
   'applications',
   'reports',
