@@ -84,7 +84,7 @@ async function requestRestore() {
 
 export function shouldAttemptSupabaseWake(error: unknown) {
   const text = error instanceof Error ? `${error.name} ${error.message}` : JSON.stringify(error);
-  return /(^|\D)540(\D|$)|paused|inactive|temporarily unavailable|service unavailable|gateway timeout|fetch failed|failed to fetch|network|timeout|ECONNRESET|ENOTFOUND/i.test(text);
+  return /(^|\D)540(\D|$)|paused|inactive|temporarily unavailable|service unavailable|gateway timeout|fetch failed|failed to fetch|network|timeout|ECONNRESET|ENOTFOUND|tenant\/user .* not found|supavisor/i.test(text);
 }
 
 export function databaseStartingError(message = 'База даних StudentFlow запускається. Повторіть запит за кілька секунд.') {
