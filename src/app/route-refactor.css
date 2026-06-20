@@ -276,6 +276,12 @@
 .route-detail .detail-summary {
   font-size: 18px;
 }
+.route-detail .skill-bars span {
+  color: #26313f;
+}
+.route-detail .skill-bars span:before {
+  background: #2f3746;
+}
 .route-cover .imagekit-image {
   background-image: url('/seed-images/visuals/skill-route-map.png');
   background-size: cover;
