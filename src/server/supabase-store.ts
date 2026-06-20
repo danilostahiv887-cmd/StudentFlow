@@ -94,16 +94,31 @@ async function runSupabaseQuery<T extends { error: unknown }>(
   label: string,
   operation: () => PromiseLike<T>,
 ) {
+  const retryAfterWake = async () => {
+    if (!(await waitForSupabaseReady(label))) throw databaseStartingError();
+
+    try {
+      const retried = await operation();
+      if (retried.error && shouldAttemptSupabaseWake(retried.error)) {
+        throw databaseStartingError();
+      }
+      return retried;
+    } catch (error) {
+      if (shouldAttemptSupabaseWake(error)) throw databaseStartingError();
+      throw error;
+    }
+  };
+
+  let result: T;
   try {
-    const result = await operation();
-    if (!result.error || !shouldAttemptSupabaseWake(result.error)) return result;
-    if (await waitForSupabaseReady(label)) return operation();
-    throw databaseStartingError();
+    result = await operation();
   } catch (error) {
     if (!shouldAttemptSupabaseWake(error)) throw error;
-    if (await waitForSupabaseReady(label)) return operation();
-    throw databaseStartingError();
+    return retryAfterWake();
   }
+
+  if (!result.error || !shouldAttemptSupabaseWake(result.error)) return result;
+  return retryAfterWake();
 }
 
 async function loadDatabase(): Promise<DatabaseSnapshot> {

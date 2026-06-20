@@ -1,13 +1,11 @@
 import Link from 'next/link';
 import { Command, Grid2X2 } from 'lucide-react';
 import { currentUser } from '@/server/auth';
-import { preflightSupabaseWake } from '@/server/supabase-wake';
 import { initials } from '@/lib/formatters';
 import { roleLabel } from '@/lib/constants';
 import { LogoutButton } from '@/components/layout/logout-button';
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  await preflightSupabaseWake();
   const user = await currentUser();
   const home = user ? `/${user.role}` : '/';
   return (
