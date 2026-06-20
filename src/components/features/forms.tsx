@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type ChangeEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { UploadCloud, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ExternalLink, UploadCloud, Trash2, Image as ImageIcon } from 'lucide-react';
 import {
   AppButton,
   AppInput,
@@ -188,6 +188,12 @@ function ImagePicker({
           <Trash2 size={16} aria-hidden />
           Видалити
         </AppButton>
+        {preview && (
+          <a className="button button-ghost" href={preview} target="_blank" rel="noreferrer">
+            <ExternalLink size={16} aria-hidden />
+            Переглянути
+          </a>
+        )}
       </div>
       {selectedName && (
         <p className="image-status">Буде завантажено після збереження: {selectedName}</p>

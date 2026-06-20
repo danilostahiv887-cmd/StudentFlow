@@ -89,6 +89,16 @@ export default async function StudentReportsPage({
                           : 'доказ ще не додано'}
                       </small>
                       <div className="data-row-actions">
+                        {report?.evidenceUrl && (
+                          <a
+                            className="button button-ghost"
+                            href={report.evidenceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Відкрити файл
+                          </a>
+                        )}
                         {(!report || ['draft', 'needs_changes'].includes(report.status)) && (
                           <ReportDialog
                             applicationId={application.id}
