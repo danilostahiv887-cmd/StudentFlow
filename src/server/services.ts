@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import type { Activity, ApplicationStatus, Profile, ReportStatus } from '@/types/entities';
+import type { Activity, ApplicationStatus, MediaAsset, Profile, ReportStatus } from '@/types/entities';
 import { hash } from 'bcryptjs';
 import { readDatabase, replaceDatabase as writeDatabase } from '@/server/supabase-store';
 import { deleteImageKitFile } from '@/server/imagekit';
@@ -10,7 +10,66 @@ const now = () => new Date().toISOString();
 const ownedActivity = (teacherId: string, activity: Activity) => activity.teacherId === teacherId;
 
 export const applicationSchema = z.object({ activityId: z.string().min(1), motivation: z.string().trim().min(10, 'Опишіть, для чого додаєте цей крок.').max(1000) });
-export const reportSchema = z.object({ applicationId: z.string(), reflection: z.string().trim().min(20, 'Доказ має містити щонайменше 20 символів.'), hoursSpent: z.coerce.number().positive('Вкажіть додатну кількість годин.'), skillsGained: z.string().trim().min(3, 'Вкажіть компетентності.') });
+export const reportSchema = z.object({ applicationId: z.string(), reflection: z.string().trim().min(20, 'Доказ має містити щонайменше 20 символів.'), hoursSpent: z.coerce.number().positive('Вкажіть додатну кількість годин.'), skillsGained: z.string().trim().min(3, 'Вкажіть компетентності.'), evidenceUrl: z.string().trim().optional(), removeImage: z.string().optional() });
+
+type Database = Awaited<ReturnType<typeof readDatabase>>;
+type ImageInput = { imageUrl?: string; imageFileId?: string; imageFileName?: string; imageThumbnailUrl?: string; imageAlt?: string; removeImage?: string };
+
+function nextImageKey(database: Database) {
+  return Math.max(
+    8,
+    ...database.mediaAssets.map((item) => item.imageKey),
+    ...database.activities.map((item) => item.imageKey),
+    ...database.clubs.map((item) => item.imageKey),
+    ...database.categories.map((item) => item.imageKey),
+    ...database.badges.map((item) => item.imageKey),
+  ) + 1;
+}
+
+function isImageKeyUsed(database: Database, kind: MediaAsset['kind'], imageKey: number) {
+  if (kind === 'activity') return database.activities.some((item) => item.imageKey === imageKey);
+  if (kind === 'club') return database.clubs.some((item) => item.imageKey === imageKey);
+  if (kind === 'badge') return database.badges.some((item) => item.imageKey === imageKey);
+  return database.categories.some((item) => item.imageKey === imageKey);
+}
+
+async function deleteUnusedMedia(database: Database, kind: MediaAsset['kind'], imageKey: number) {
+  if (isImageKeyUsed(database, kind, imageKey)) return;
+  const assets = database.mediaAssets.filter((item) => item.kind === kind && item.imageKey === imageKey);
+  for (const asset of assets) await deleteImageKitFile(asset.fileId);
+  database.mediaAssets = database.mediaAssets.filter((item) => !assets.some((asset) => asset.id === item.id));
+}
+
+function attachMedia(database: Database, kind: MediaAsset['kind'], input: ImageInput, fallbackAlt: string) {
+  if (!input.imageUrl?.trim()) return undefined;
+  const imageKey = nextImageKey(database);
+  database.mediaAssets.push({
+    id: randomUUID(),
+    kind,
+    imageKey,
+    fileName: input.imageFileName?.trim() || `${kind}-${imageKey}.png`,
+    fileId: input.imageFileId?.trim() || undefined,
+    url: input.imageUrl.trim(),
+    thumbnailUrl: input.imageThumbnailUrl?.trim() || input.imageUrl.trim(),
+    alt: input.imageAlt?.trim() || fallbackAlt,
+    dominantColor: '#48c8d8',
+  });
+  return imageKey;
+}
+
+async function applyMediaChange(database: Database, kind: MediaAsset['kind'], currentImageKey: number, fallbackImageKey: number, input: ImageInput, fallbackAlt: string, setImageKey: (value: number) => void) {
+  const oldImageKey = currentImageKey;
+  if (input.removeImage === 'true') {
+    setImageKey(fallbackImageKey);
+    await deleteUnusedMedia(database, kind, oldImageKey);
+    return;
+  }
+  const nextKey = attachMedia(database, kind, input, fallbackAlt);
+  if (nextKey) {
+    setImageKey(nextKey);
+    await deleteUnusedMedia(database, kind, oldImageKey);
+  }
+}
 
 export async function submitApplication(actor: Profile, input: unknown) {
   if (actor.role !== 'student') throw new DomainError('Маршрут формує студент.');
@@ -44,6 +103,8 @@ export async function submitReport(actor: Profile, input: unknown) {
   if (existing && ['approved', 'rejected'].includes(existing.status)) throw new DomainError('Цей доказ уже розглянуто.');
   const report = existing ?? { id: randomUUID(), applicationId: application.id, activityId: application.activityId, studentId: actor.id, status: 'draft' as ReportStatus, reflection: '', hoursSpent: 0, skillsGained: '', createdAt: now(), updatedAt: now() };
   report.reflection = values.reflection; report.hoursSpent = values.hoursSpent; report.skillsGained = values.skillsGained; report.status = 'submitted'; report.updatedAt = now();
+  if (values.removeImage === 'true') report.evidenceUrl = undefined;
+  else if (values.evidenceUrl?.trim()) report.evidenceUrl = values.evidenceUrl.trim();
   if (!existing) database.reports.push(report);
   await writeDatabase(database);
 }
@@ -123,20 +184,22 @@ export async function createTeacher(actor: Profile, input: { fullName: string; e
   const teacher: Profile = { id: randomUUID(), fullName: input.fullName.trim(), email: input.email.trim().toLocaleLowerCase(), passwordHash: await hash(input.password, 10), role: 'teacher', status: 'active', pointsTotal: 0 };
   database.profiles.push(teacher); await writeDatabase(database);
 }
-export async function createActivity(actor: Profile, input: { title: string; shortDescription: string; categoryId: string; clubId: string; teacherId: string; format: string; location: string; startAt: string; endAt: string; maxParticipants: string; points: string }) {
+export async function createActivity(actor: Profile, input: { title: string; shortDescription: string; categoryId: string; clubId: string; teacherId: string; format: string; location: string; startAt: string; endAt: string; maxParticipants: string; points: string } & ImageInput) {
   adminOnly(actor); const database = await readDatabase(); const start = new Date(input.startAt); const end = new Date(input.endAt); const maxParticipants = Number(input.maxParticipants); const points = Number(input.points);
   if (!input.title.trim() || !input.shortDescription.trim() || !database.categories.some((item) => item.id === input.categoryId) || !database.clubs.some((item) => item.id === input.clubId) || !database.profiles.some((item) => item.id === input.teacherId && item.role === 'teacher') || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start || maxParticipants <= 0 || points < 0) throw new DomainError('Перевірте назву, довідники, дати, місткість і кількість балів.');
   const slugBase = input.title.trim().toLocaleLowerCase('uk-UA').replace(/[^a-zа-яіїєґ0-9]+/gi, '-').replace(/^-|-$/g, '') || 'activity';
-  database.activities.push({ id: randomUUID(), title: input.title.trim(), slug: `${slugBase}-${Date.now().toString().slice(-5)}`, shortDescription: input.shortDescription.trim(), description: input.shortDescription.trim(), categoryId: input.categoryId, clubId: input.clubId, teacherId: input.teacherId, imageKey: (database.activities.length % 8) + 1, format: input.format as Activity['format'], location: input.location.trim() || 'Уточнюється', startAt: start.toISOString(), endAt: end.toISOString(), maxParticipants, points, difficulty: 'beginner', status: 'published', requirements: 'Оберіть очікуваний доказ перед стартом.', resultDescription: 'Доказ у портфоліо та оновлена карта компетентностей.', skills: ['Самоменеджмент', 'Командна робота'] });
+  const fallbackImageKey = (database.activities.length % 8) + 1;
+  const imageKey = attachMedia(database, 'activity', input, input.title.trim()) ?? fallbackImageKey;
+  database.activities.push({ id: randomUUID(), title: input.title.trim(), slug: `${slugBase}-${Date.now().toString().slice(-5)}`, shortDescription: input.shortDescription.trim(), description: input.shortDescription.trim(), categoryId: input.categoryId, clubId: input.clubId, teacherId: input.teacherId, imageKey, format: input.format as Activity['format'], location: input.location.trim() || 'Уточнюється', startAt: start.toISOString(), endAt: end.toISOString(), maxParticipants, points, difficulty: 'beginner', status: 'published', requirements: 'Оберіть очікуваний доказ перед стартом.', resultDescription: 'Доказ у портфоліо та оновлена карта компетентностей.', skills: ['Самоменеджмент', 'Командна робота'] });
   await writeDatabase(database);
 }
-export async function createReference(actor: Profile, kind: 'groups' | 'specialities' | 'clubs' | 'categories' | 'badges', input: { name: string; code?: string; teacherId?: string; description?: string; color?: string }) {
+export async function createReference(actor: Profile, kind: 'groups' | 'specialities' | 'clubs' | 'categories' | 'badges', input: { name: string; code?: string; teacherId?: string; description?: string; color?: string } & ImageInput) {
   adminOnly(actor); const database = await readDatabase(); if (!input.name.trim()) throw new DomainError('Вкажіть назву.'); const id = randomUUID(); const slug = input.name.trim().toLocaleLowerCase('uk-UA').replace(/[^a-zа-яіїєґ0-9]+/gi, '-');
   if (kind === 'specialities') database.specialities.push({ id, code: input.code?.trim().toUpperCase() || `SP-${database.specialities.length + 1}`, name: input.name.trim(), description: input.description?.trim() || '' });
   if (kind === 'groups') { const specialityId = database.specialities[0]?.id; if (!specialityId) throw new DomainError('Спершу створіть спеціальність.'); const startYear = new Date().getFullYear(); database.groups.push({ id, name: `${input.name.trim()} (${startYear}-${startYear + 4})`, specialityId, startYear, endYear: startYear + 4, isActive: true }); }
-  if (kind === 'clubs') { const teacherId = input.teacherId || database.profiles.find((item) => item.role === 'teacher')?.id; if (!teacherId) throw new DomainError('Спершу створіть викладача.'); database.clubs.push({ id, name: input.name.trim(), slug, description: input.description?.trim() || '', teacherId, imageKey: (database.clubs.length % 8) + 1, status: 'active' }); }
-  if (kind === 'categories') database.categories.push({ id, name: input.name.trim(), slug, color: input.color || 'aqua', imageKey: (database.categories.length % 8) + 1 });
-  if (kind === 'badges') database.badges.push({ id, title: input.name.trim(), description: input.description?.trim() || 'Нова відзнака StudentFlow.', imageKey: (database.badges.length % 8) + 1, color: input.color || 'aqua', conditionType: 'points', conditionValue: 10, isActive: true });
+  if (kind === 'clubs') { const teacherId = input.teacherId || database.profiles.find((item) => item.role === 'teacher')?.id; if (!teacherId) throw new DomainError('Спершу створіть викладача.'); const fallbackImageKey = (database.clubs.length % 8) + 1; database.clubs.push({ id, name: input.name.trim(), slug, description: input.description?.trim() || '', teacherId, imageKey: attachMedia(database, 'club', input, input.name.trim()) ?? fallbackImageKey, status: 'active' }); }
+  if (kind === 'categories') { const fallbackImageKey = (database.categories.length % 8) + 1; database.categories.push({ id, name: input.name.trim(), slug, color: input.color || input.code || 'aqua', imageKey: attachMedia(database, 'visual', input, input.name.trim()) ?? fallbackImageKey }); }
+  if (kind === 'badges') { const fallbackImageKey = (database.badges.length % 8) + 1; database.badges.push({ id, title: input.name.trim(), description: input.description?.trim() || 'Нова відзнака StudentFlow.', imageKey: attachMedia(database, 'badge', input, input.name.trim()) ?? fallbackImageKey, color: input.color || input.code || 'aqua', conditionType: 'points', conditionValue: 10, isActive: true }); }
   await writeDatabase(database);
 }
 
@@ -169,14 +232,15 @@ export async function updateAdminEntity(actor: Profile, input: { entity: string;
     if (values.location !== undefined) activity.location = values.location.trim();
     if (values.points) activity.points = Number(values.points);
     if (values.maxParticipants) activity.maxParticipants = Number(values.maxParticipants);
+    await applyMediaChange(database, 'activity', activity.imageKey, 1, values, activity.title, (value) => { activity.imageKey = value; });
   }
   if (input.entity === 'group') {
     const group = database.groups.find((item) => item.id === input.id);
     if (!group) throw new DomainError('Групу не знайдено.');
-    if (values.name?.trim()) group.name = values.name.trim();
     if (values.startYear) group.startYear = Number(values.startYear);
     if (values.endYear) group.endYear = Number(values.endYear);
-    if (!group.name.includes('(')) group.name = `${group.name} (${group.startYear}-${group.endYear})`;
+    const baseName = (values.name?.trim() || group.name).replace(/\s*\(\d{4}\s*-\s*\d{4}\)\s*$/, '').trim();
+    group.name = `${baseName} (${group.startYear}-${group.endYear})`;
   }
   if (input.entity === 'speciality') {
     const item = database.specialities.find((x) => x.id === input.id);
@@ -191,12 +255,14 @@ export async function updateAdminEntity(actor: Profile, input: { entity: string;
     if (values.name?.trim()) item.name = values.name.trim();
     if (values.description !== undefined) item.description = values.description.trim();
     if (values.teacherId && database.profiles.some((profile) => profile.id === values.teacherId && profile.role === 'teacher')) item.teacherId = values.teacherId;
+    await applyMediaChange(database, 'club', item.imageKey, 1, values, item.name, (value) => { item.imageKey = value; });
   }
   if (input.entity === 'category') {
     const item = database.categories.find((x) => x.id === input.id);
     if (!item) throw new DomainError('Трек не знайдено.');
     if (values.name?.trim()) item.name = values.name.trim();
     if (values.color?.trim()) item.color = values.color.trim();
+    await applyMediaChange(database, 'visual', item.imageKey, 1, values, item.name, (value) => { item.imageKey = value; });
   }
   if (input.entity === 'badge') {
     const item = database.badges.find((x) => x.id === input.id);
@@ -205,6 +271,7 @@ export async function updateAdminEntity(actor: Profile, input: { entity: string;
     if (values.description !== undefined) item.description = values.description.trim();
     if (values.conditionValue) item.conditionValue = Number(values.conditionValue);
     if (values.isActive) item.isActive = values.isActive === 'true';
+    await applyMediaChange(database, 'badge', item.imageKey, 1, values, item.title, (value) => { item.imageKey = value; });
   }
   await writeDatabase(database);
 }
@@ -214,29 +281,32 @@ export async function deleteAdminEntity(actor: Profile, input: { entity: string;
   const database = await readDatabase();
   const deleteActivity = async (activityId: string) => {
     const activity = database.activities.find((item) => item.id === activityId);
-    const assets = activity ? database.mediaAssets.filter((item) => item.kind === 'activity' && item.imageKey === activity.imageKey) : [];
-    for (const asset of assets) {
-      await deleteImageKitFile(asset.fileId);
-    }
-    database.mediaAssets = database.mediaAssets.filter((item) => !assets.some((asset) => asset.id === item.id));
+    const imageKey = activity?.imageKey;
     database.reports = database.reports.filter((item) => item.activityId !== activityId);
     database.applications = database.applications.filter((item) => item.activityId !== activityId);
     database.activities = database.activities.filter((item) => item.id !== activityId);
+    if (imageKey) await deleteUnusedMedia(database, 'activity', imageKey);
   };
-  const deleteBadge = (badgeId: string) => {
+  const deleteBadge = async (badgeId: string) => {
+    const badge = database.badges.find((item) => item.id === badgeId);
+    const imageKey = badge?.imageKey;
     database.studentBadges = database.studentBadges.filter((item) => item.badgeId !== badgeId);
     database.badges = database.badges.filter((item) => item.id !== badgeId);
+    if (imageKey) await deleteUnusedMedia(database, 'badge', imageKey);
   };
   const deleteGroup = (groupId: string) => {
     database.profiles.filter((item) => item.groupId === groupId).forEach((item) => { item.groupId = undefined; });
     database.groups = database.groups.filter((item) => item.id !== groupId);
   };
   const deleteClub = async (clubId: string) => {
+    const club = database.clubs.find((item) => item.id === clubId);
+    const imageKey = club?.imageKey;
     const activities = database.activities.filter((item) => item.clubId === clubId);
     for (const activity of activities) {
       await deleteActivity(activity.id);
     }
     database.clubs = database.clubs.filter((item) => item.id !== clubId);
+    if (imageKey) await deleteUnusedMedia(database, 'club', imageKey);
   };
 
   if (input.entity === 'profile') {
@@ -272,15 +342,21 @@ export async function deleteAdminEntity(actor: Profile, input: { entity: string;
     await deleteClub(input.id);
   }
   if (input.entity === 'category') {
+    const category = database.categories.find((item) => item.id === input.id);
+    const imageKey = category?.imageKey;
     const activities = database.activities.filter((item) => item.categoryId === input.id);
     for (const activity of activities) {
       await deleteActivity(activity.id);
     }
-    database.badges.filter((item) => item.categoryId === input.id).forEach((item) => deleteBadge(item.id));
+    const badges = database.badges.filter((item) => item.categoryId === input.id);
+    for (const badge of badges) {
+      await deleteBadge(badge.id);
+    }
     database.categories = database.categories.filter((item) => item.id !== input.id);
+    if (imageKey) await deleteUnusedMedia(database, 'visual', imageKey);
   }
   if (input.entity === 'badge') {
-    deleteBadge(input.id);
+    await deleteBadge(input.id);
   }
   if (input.entity === 'mediaAsset') {
     const asset = database.mediaAssets.find((item) => item.id === input.id);
