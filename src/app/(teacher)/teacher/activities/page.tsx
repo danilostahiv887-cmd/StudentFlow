@@ -37,7 +37,7 @@ export default async function TeacherActivitiesPage({
       <div className="page-intro">
         <div>
           <p className="eyebrow">Менторський простір</p>
-          <h1>Мої напрями</h1>
+          <h1>Мої можливості</h1>
         </div>
       </div>
       <div className="workspace">
@@ -48,7 +48,7 @@ export default async function TeacherActivitiesPage({
               pathname="/teacher/activities"
               search={query.search}
               pageSize={pageSize}
-              placeholder="Назва, напрям або опис"
+              placeholder="Назва, компетентність або опис"
             >
               <AppSelect name="status" defaultValue={query.status ?? ''}>
                 <option value="">Усі стани</option>
@@ -65,7 +65,7 @@ export default async function TeacherActivitiesPage({
                 ))}
               </div>
             ) : (
-              <EmptyState title="Напрямів не знайдено" body="Змініть пошук або стан." />
+              <EmptyState title="Можливостей не знайдено" body="Змініть пошук або стан." />
             )}
             <Pagination
               page={result.page}

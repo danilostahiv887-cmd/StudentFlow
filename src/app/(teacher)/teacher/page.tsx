@@ -15,7 +15,7 @@ export default async function TeacherDashboard() {
       <div className="page-intro">
         <div>
           <p className="eyebrow">Менторська панель</p>
-          <h1>Фідбек і напрями.</h1>
+          <h1>Менторська робота.</h1>
         </div>
       </div>
       <div className="workspace">
@@ -23,8 +23,8 @@ export default async function TeacherDashboard() {
         <div className="workspace-main">
           <div className="dashboard-grid">
             <DashboardMetric label="Докази в черзі" value={pendingEvidence.length} accent="coral" />
-            <DashboardMetric label="Мої напрями" value={activities.length} accent="violet" />
-            <DashboardMetric label="Студенти в маршрутах" value={mentoredStudents} accent="aqua" />
+            <DashboardMetric label="Мої можливості" value={activities.length} accent="violet" />
+            <DashboardMetric label="Студенти в участі" value={mentoredStudents} accent="aqua" />
             <DashboardMetric
               label="Прийнято доказів"
               value={reports.filter((item) => item.status === 'approved').length}
@@ -55,8 +55,8 @@ export default async function TeacherDashboard() {
             </section>
             <section className="surface">
               <div className="surface-head">
-                <h2>Активні маршрути</h2>
-                <Link href="/teacher/activities">Мої напрями</Link>
+                <h2>Студентські участі</h2>
+                <Link href="/teacher/activities">Мої можливості</Link>
               </div>
               {applications.length ? (
                 applications.slice(0, 4).map((item) => (
@@ -71,7 +71,7 @@ export default async function TeacherDashboard() {
                   </div>
                 ))
               ) : (
-                <p>Маршрути ще не сформовані.</p>
+                <p>Студенти ще не додалися до ваших можливостей.</p>
               )}
             </section>
           </div>
