@@ -1,13 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-
-type DatabaseStatus = {
-  state: 'ready' | 'starting' | 'paused' | 'unconfigured' | 'error';
-  projectStatus?: string;
-  message: string;
-  restoreRequested?: boolean;
-};
+import { databaseRecoveryMode, type DatabaseStatus } from '@/lib/database-recovery';
 
 export function DatabaseWaiter({ reset }: { reset?: () => void }) {
   const [status, setStatus] = useState<DatabaseStatus | undefined>();
@@ -64,6 +58,60 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
         <div className="dialog-actions">
           <button className="button button-primary" type="button" onClick={() => reset ? reset() : window.location.reload()}>
             Перевірити зараз
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function DatabaseErrorRecovery({ error, reset }: { error: Error; reset: () => void }) {
+  const [status, setStatus] = useState<DatabaseStatus>();
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+
+    void fetch('/api/system/database-status', { cache: 'no-store' })
+      .then(async (response) => response.json() as Promise<DatabaseStatus>)
+      .then((data) => {
+        if (alive) setStatus(data);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (alive) setChecked(true);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const mode = databaseRecoveryMode(error, status);
+  if (mode === 'database-starting') return <DatabaseWaiter reset={reset} />;
+
+  if (!checked) {
+    return (
+      <div className="database-wait-page">
+        <section className="database-wait-card">
+          <div className="database-loader" aria-hidden="true" />
+          <p className="eyebrow">StudentFlow</p>
+          <h1>Перевіряємо доступність даних</h1>
+          <p>Зачекайте кілька секунд.</p>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-error-page">
+      <section className="app-error-card">
+        <p className="eyebrow">StudentFlow</p>
+        <h1>Сторінку не вдалося завантажити</h1>
+        <p>Оновіть сторінку або поверніться до попереднього розділу.</p>
+        <div className="dialog-actions">
+          <button className="button button-primary" type="button" onClick={reset}>
+            Спробувати ще раз
           </button>
         </div>
       </section>
