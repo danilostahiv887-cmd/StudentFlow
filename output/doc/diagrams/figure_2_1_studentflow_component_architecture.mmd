@@ -1,0 +1,20 @@
+flowchart LR
+  Guest[Гість] --> Public[Публічний навігатор активностей]
+  Student[Студент] --> StudentDesk[Студентський кабінет]
+  Teacher[Викладач] --> TeacherDesk[Менторський простір]
+  Admin[Адміністратор] --> AdminDesk[Адміністративна панель]
+
+  Public --> Next[Next.js App Router]
+  StudentDesk --> Next
+  TeacherDesk --> Next
+  AdminDesk --> Next
+
+  Next --> Actions[API-маршрути та серверні сервіси]
+  Actions --> Repository[Шар доступу до даних]
+  Repository --> Supabase[(Supabase Postgres)]
+  Actions --> ImageKit[Медіасховище ImageKit]
+  Actions --> Wake[Модуль пробудження Supabase]
+  Wake --> SupabaseAPI[API керування Supabase]
+
+  Supabase --> Repository
+  ImageKit --> Repository

@@ -1,0 +1,64 @@
+erDiagram
+  SPECIALITIES ||--o{ GROUPS : має
+  SPECIALITIES ||--o{ PROFILES : обрана_у
+  GROUPS ||--o{ PROFILES : включає
+  PROFILES ||--o{ CLUBS : веде
+  PROFILES ||--o{ ACTIVITIES : менторить
+  PROFILES ||--o{ APPLICATIONS : подає
+  PROFILES ||--o{ REPORTS : пише
+  PROFILES ||--o{ REPORTS : перевіряє
+  CATEGORIES ||--o{ ACTIVITIES : класифікує
+  CATEGORIES ||--o{ BADGES : обмежує
+  CLUBS ||--o{ ACTIVITIES : проводить
+  ACTIVITIES ||--o{ APPLICATIONS : отримує
+  ACTIVITIES ||--o{ REPORTS : підтверджує
+  APPLICATIONS ||--o| REPORTS : створює
+  BADGES ||--o{ STUDENT_BADGES : видається_як
+  PROFILES ||--o{ STUDENT_BADGES : отримує
+  MEDIA_ASSETS }o--|| ACTIVITIES : візуалізує
+  MEDIA_ASSETS }o--|| CLUBS : візуалізує
+  MEDIA_ASSETS }o--|| BADGES : візуалізує
+
+  SPECIALITIES {
+    text id
+    text code
+    text name
+  }
+  GROUPS {
+    text id
+    text name
+    int startYear
+    int endYear
+  }
+  PROFILES {
+    text id
+    text fullName
+    text email
+    text role
+    int pointsTotal
+  }
+  ACTIVITIES {
+    text id
+    text title
+    text slug
+    text format
+    text status
+    int points
+  }
+  APPLICATIONS {
+    text id
+    text status
+    text motivation
+  }
+  REPORTS {
+    text id
+    text status
+    int hoursSpent
+    text evidenceUrl
+  }
+  BADGES {
+    text id
+    text title
+    text conditionType
+    int conditionValue
+  }
