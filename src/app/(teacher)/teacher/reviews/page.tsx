@@ -83,10 +83,21 @@ export default async function TeacherReviewsPage({
                       >
                         Профіль
                       </Link>
+                      {item.evidenceUrl && (
+                        <a
+                          className="button button-ghost"
+                          href={item.evidenceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Файл
+                        </a>
+                      )}
                       <ReviewDialog
                         kind="report"
                         id={item.id}
                         title={`Доказ: ${item.student.fullName}`}
+                        evidenceUrl={item.evidenceUrl}
                       />
                     </div>
                   </article>

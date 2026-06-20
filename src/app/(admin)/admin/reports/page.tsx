@@ -87,6 +87,7 @@ export default async function AdminReportsPage({
                       kind="report"
                       id={report.id}
                       title={`Доказ: ${student?.fullName ?? ''}`}
+                      evidenceUrl={report.evidenceUrl}
                     />
                   </article>
                 );

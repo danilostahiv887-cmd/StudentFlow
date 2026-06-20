@@ -440,10 +440,12 @@ export function ReviewDialog({
   kind,
   id,
   title,
+  evidenceUrl,
 }: {
   kind: 'application' | 'report';
   id: string;
   title: string;
+  evidenceUrl?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'approved' | 'rejected' | 'needs_changes'>('approved');
@@ -503,6 +505,17 @@ export function ReviewDialog({
               Відхилити
             </button>
           </div>
+          {kind === 'report' && evidenceUrl && (
+            <a
+              className="button button-secondary"
+              href={evidenceUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <ExternalLink size={16} aria-hidden />
+              Відкрити файл доказу
+            </a>
+          )}
           <label className="form-label">
             Коментар для студента
             <AppTextarea
