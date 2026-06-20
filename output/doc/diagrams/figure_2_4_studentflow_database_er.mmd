@@ -1,23 +1,23 @@
 erDiagram
-  SPECIALITIES ||--o{ GROUPS : contains
-  SPECIALITIES ||--o{ PROFILES : selected_by
-  GROUPS ||--o{ PROFILES : includes
-  PROFILES ||--o{ CLUBS : leads
-  PROFILES ||--o{ ACTIVITIES : mentors
-  PROFILES ||--o{ APPLICATIONS : submits
-  PROFILES ||--o{ REPORTS : writes
-  PROFILES ||--o{ REPORTS : reviews
-  CATEGORIES ||--o{ ACTIVITIES : classifies
-  CATEGORIES ||--o{ BADGES : limits
-  CLUBS ||--o{ ACTIVITIES : hosts
-  ACTIVITIES ||--o{ APPLICATIONS : receives
-  ACTIVITIES ||--o{ REPORTS : confirms
-  APPLICATIONS ||--o| REPORTS : produces
-  BADGES ||--o{ STUDENT_BADGES : granted_as
-  PROFILES ||--o{ STUDENT_BADGES : earns
-  MEDIA_ASSETS }o--|| ACTIVITIES : visualizes
-  MEDIA_ASSETS }o--|| CLUBS : visualizes
-  MEDIA_ASSETS }o--|| BADGES : visualizes
+  SPECIALITIES ||--o{ GROUPS : має
+  SPECIALITIES ||--o{ PROFILES : обрана_у
+  GROUPS ||--o{ PROFILES : включає
+  PROFILES ||--o{ CLUBS : веде
+  PROFILES ||--o{ ACTIVITIES : менторить
+  PROFILES ||--o{ APPLICATIONS : подає
+  PROFILES ||--o{ REPORTS : пише
+  PROFILES ||--o{ REPORTS : перевіряє
+  CATEGORIES ||--o{ ACTIVITIES : класифікує
+  CATEGORIES ||--o{ BADGES : обмежує
+  CLUBS ||--o{ ACTIVITIES : проводить
+  ACTIVITIES ||--o{ APPLICATIONS : отримує
+  ACTIVITIES ||--o{ REPORTS : підтверджує
+  APPLICATIONS ||--o| REPORTS : створює
+  BADGES ||--o{ STUDENT_BADGES : видається_як
+  PROFILES ||--o{ STUDENT_BADGES : отримує
+  MEDIA_ASSETS }o--|| ACTIVITIES : візуалізує
+  MEDIA_ASSETS }o--|| CLUBS : візуалізує
+  MEDIA_ASSETS }o--|| BADGES : візуалізує
 
   SPECIALITIES {
     text id

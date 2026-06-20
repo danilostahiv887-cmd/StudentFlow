@@ -9,12 +9,12 @@ flowchart LR
   TeacherDesk --> Next
   AdminDesk --> Next
 
-  Next --> Actions[Серверні API-маршрути та сервісні функції]
-  Actions --> Repository[Repository layer]
+  Next --> Actions[API-маршрути та серверні сервіси]
+  Actions --> Repository[Шар доступу до даних]
   Repository --> Supabase[(Supabase Postgres)]
-  Actions --> ImageKit[ImageKit Media Library]
-  Actions --> Wake[Supabase wake monitor]
-  Wake --> SupabaseAPI[Supabase Management API]
+  Actions --> ImageKit[Медіасховище ImageKit]
+  Actions --> Wake[Модуль пробудження Supabase]
+  Wake --> SupabaseAPI[API керування Supabase]
 
   Supabase --> Repository
   ImageKit --> Repository

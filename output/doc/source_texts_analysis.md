@@ -158,10 +158,10 @@ markdown-текстовку не знайдено. Є Word/PDF-файли в `Т
 
 - залишити академічну послідовність розділів, але не копіювати назви й ритм подачі з інших текстовок;
 - не повторювати Volunteer Hub / волонтерську логіку;
-- у 1.2 використати аналоги саме зі сфери campus engagement, co-curricular transcript і student life: Suitable, Modern Campus Involve, CampusGroups, Anthology Engage, Pathify Communities, GivePulse;
+- у 1.2 використати аналоги саме зі сфери студентського залучення, цифрового запису позааудиторних досягнень і студентського життя закладу: Suitable, Modern Campus Involve, CampusGroups, Anthology Engage, Pathify Communities, GivePulse;
 - не використовувати LMS на кшталт Moodle або Google Classroom як основні аналоги, бо вони описують навчальні курси, а не позааудиторний маршрут;
 - у 2.1 додати компонентну архітектуру;
-- у 2.2 додати алгоритм маршруту студента та життєвий цикл ImageKit upload;
+- у 2.2 додати алгоритм маршруту студента та життєвий цикл завантаження в ImageKit;
 - у 2.4 додати ER-модель Supabase;
 - у 3.1 додати діаграму класів;
 - у 3.3 включити реальні лістинги з `repository.ts`, `services.ts`, `forms.tsx`, `supabase-wake.ts`;
