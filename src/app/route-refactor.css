@@ -205,9 +205,12 @@
   grid-template-columns: minmax(60px, 1fr) 140px;
   align-items: center;
   gap: 12px;
-  color: #e9edf5;
+  color: #26313f;
   font-size: 12px;
   font-weight: 800;
+}
+.skill-console .skill-bars span {
+  color: #e9edf5;
 }
 .skill-bars span:before {
   content: '';

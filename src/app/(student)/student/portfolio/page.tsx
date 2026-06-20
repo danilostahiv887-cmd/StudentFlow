@@ -40,7 +40,11 @@ export default async function PortfolioPage() {
               <h1>{profile.fullName}</h1>
               <p>Карта компетентностей, підтверджені докази та відкриті відзнаки.</p>
             </div>
-            <ProgressRing value={Math.min(100, profile.pointsTotal)} label="бали" />
+            <ProgressRing
+              value={profile.pointsTotal}
+              progress={Math.min(100, profile.pointsTotal)}
+              label="балів"
+            />
           </section>
           <div className="dashboard-grid" style={{ marginTop: 18 }}>
             <DashboardMetric label="Бали" value={profile.pointsTotal} accent="aqua" />

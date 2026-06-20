@@ -250,14 +250,22 @@ export function DashboardMetric({
     </article>
   );
 }
-export function ProgressRing({ value, label }: { value: number; label: string }) {
+export function ProgressRing({
+  value,
+  label,
+  progress = value,
+}: {
+  value: number;
+  label: string;
+  progress?: number;
+}) {
   return (
     <div
       className="progress-ring"
-      style={{ '--progress': `${Math.min(Math.max(value, 0), 100)}%` } as React.CSSProperties}
+      style={{ '--progress': `${Math.min(Math.max(progress, 0), 100)}%` } as React.CSSProperties}
     >
       <div>
-        <b>{value}%</b>
+        <b>{value}</b>
         <span>{label}</span>
       </div>
     </div>
