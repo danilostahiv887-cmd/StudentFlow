@@ -62,9 +62,9 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: P
           <h2>Зібрати маршрут</h2>
           <SearchBox defaultValue={filters.search} placeholder="Навичка, назва або формат" />
           <label>
-            Трек
+            Напрям
             <AppSelect name="category" defaultValue={filters.category}>
-              <option value="">Усі треки</option>
+              <option value="">Усі напрями</option>
               {result.categories.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
@@ -146,7 +146,7 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: P
           ) : (
             <EmptyState
               title="Кроків не знайдено"
-              body="Змініть пошук або трек."
+              body="Змініть пошук або напрям."
               action={
                 <Link className="button button-primary" href="/activities">
                   Показати все

@@ -67,7 +67,7 @@ export default async function AdminReferencePage({
               pathname="/admin/reference"
               search={query.search}
               pageSize={pageSize}
-              placeholder="Група, спеціальність, трек або майданчик"
+              placeholder="Група, спеціальність, напрям або майданчик"
             />
           </section>
           <div className="dashboard-columns">
@@ -198,7 +198,7 @@ export default async function AdminReferencePage({
               />
             </section>
             <section className="surface">
-              <h2>Треки</h2>
+              <h2>Напрями</h2>
               <div className="row-list">
                 {categories.items.map((item) => {
                   const media = mediaFor('visual', item.imageKey);
@@ -215,7 +215,7 @@ export default async function AdminReferencePage({
                         fields={[
                           {
                             name: 'image',
-                            label: 'Візуальний елемент треку',
+                            label: 'Візуальний елемент напряму',
                             type: 'image',
                             value: media?.url ?? '',
                             alt: item.name,

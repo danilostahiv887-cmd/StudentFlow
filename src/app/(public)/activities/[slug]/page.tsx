@@ -98,10 +98,10 @@ export default async function ActivityDetailsPage({
         <section>
           <div className="section-heading">
             <div>
-              <p>Поруч із цим треком</p>
+              <p>Поруч із цим напрямом</p>
               <h2>Наступні кроки</h2>
             </div>
-            <Link href={`/activities?category=${activity.categoryId}`}>Весь трек</Link>
+            <Link href={`/activities?category=${activity.categoryId}`}>Увесь напрям</Link>
           </div>
           <div className="activity-grid">
             {similar.map((item) => (

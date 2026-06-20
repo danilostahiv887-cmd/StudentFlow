@@ -70,10 +70,10 @@ export default async function AdminActivitiesPage({
               pathname="/admin/activities"
               search={query.search}
               pageSize={pageSize}
-              placeholder="Назва, трек, ментор"
+              placeholder="Назва, напрям, ментор"
             >
               <AppSelect name="category" defaultValue={query.category ?? ''}>
-                <option value="">Усі треки</option>
+                <option value="">Усі напрями</option>
                 {database.categories.map((item) => (
                   <option value={item.id} key={item.id}>
                     {item.name}
@@ -121,7 +121,7 @@ export default async function AdminActivitiesPage({
                         },
                         {
                           name: 'categoryId',
-                          label: 'Трек',
+                          label: 'Напрям',
                           type: 'select',
                           value: activity.categoryId,
                           options: categoryOptions,
@@ -153,7 +153,7 @@ export default async function AdminActivitiesPage({
                 ))}
               </div>
             ) : (
-              <EmptyState title="Можливостей не знайдено" body="Змініть пошук, трек або стан." />
+              <EmptyState title="Можливостей не знайдено" body="Змініть пошук, напрям або стан." />
             )}
             <Pagination
               page={result.page}

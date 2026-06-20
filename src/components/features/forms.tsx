@@ -835,7 +835,7 @@ export function AdminCreateDialog({
                 </label>
                 <div className="modal-grid modal-grid-2 compact">
                   <label className="form-label">
-                    Трек
+                    Напрям
                     <AppSelect name="categoryId">
                       {categories.map((item) => (
                         <option key={item.id} value={item.id}>
@@ -912,7 +912,7 @@ export function AdminCreateDialog({
                     <option value="groups">Академічна група</option>
                     <option value="specialities">Спеціальність</option>
                     <option value="clubs">Майданчик</option>
-                    <option value="categories">Трек</option>
+                    <option value="categories">Напрям</option>
                     <option value="badges">Відзнака</option>
                   </AppSelect>
                 </label>
@@ -931,7 +931,7 @@ export function AdminCreateDialog({
               </div>
               <ImagePicker
                 label="Візуальний елемент"
-                help="Використовується для майданчика, треку або відзнаки. Для груп і спеціальностей можна залишити порожнім."
+                help="Використовується для майданчика, напряму або відзнаки. Для груп і спеціальностей можна залишити порожнім."
                 altBase="Довідник"
                 folder="/studentflow/reference"
               />

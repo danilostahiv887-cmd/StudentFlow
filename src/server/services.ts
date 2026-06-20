@@ -644,7 +644,7 @@ export async function updateAdminEntity(
   }
   if (input.entity === 'category') {
     const item = database.categories.find((x) => x.id === input.id);
-    if (!item) throw new DomainError('Трек не знайдено.');
+    if (!item) throw new DomainError('Напрям не знайдено.');
     if (values.name?.trim()) item.name = values.name.trim();
     if (values.color?.trim()) item.color = values.color.trim();
     await applyMediaChange(database, 'visual', item.imageKey, 1, values, item.name, (value) => {

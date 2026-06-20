@@ -12,7 +12,7 @@ const links: Record<Role, [string, string][]> = {
   teacher: [
     ['/teacher', 'Панель'],
     ['/teacher/reviews', 'Фідбек'],
-    ['/teacher/activities', 'Мої треки'],
+    ['/teacher/activities', 'Мої напрями'],
     ['/teacher/profile', 'Профіль'],
   ],
   admin: [

@@ -51,7 +51,7 @@ export default async function StudentApplicationsPage({
               pathname="/student/applications"
               search={query.search}
               pageSize={pageSize}
-              placeholder="Крок, трек або навичка"
+              placeholder="Крок, напрям або навичка"
             >
               <AppSelect name="status" defaultValue={query.status ?? ''}>
                 <option value="">Усі стани</option>

@@ -527,7 +527,7 @@ export async function buildSeed(
         status,
         motivation: `Хочу посилити портфоліо через «${activity.title}» і отримати підтверджений доказ результату.`,
         teacherComment:
-          status === 'cancelled' ? 'Студент переніс участь на інший трек.' : undefined,
+          status === 'cancelled' ? 'Студент переніс участь на інший напрям.' : undefined,
         createdAt: new Date(Date.UTC(2026, 5, 10 + studentIndex, 10, offset)).toISOString(),
         updatedAt: new Date(Date.UTC(2026, 5, 11 + studentIndex, 10, offset)).toISOString(),
       });
@@ -595,7 +595,7 @@ export async function buildSeed(
     {
       id: 'badge-research',
       title: 'Початок досліджень',
-      description: 'Перший доказ у дослідницькому треку.',
+      description: 'Перший доказ у дослідницькому напрямі.',
       imageKey: 3,
       color: 'lime',
       conditionType: 'category',

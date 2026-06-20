@@ -51,7 +51,7 @@ export default async function AdminTeachersPage({
                       <small>
                         {teacher.email} ·{' '}
                         {activities.filter((activity) => activity.teacherId === teacher.id).length}{' '}
-                        треків
+                        напрямів
                       </small>
                     </div>
                     <StatusBadge status={teacher.status} />

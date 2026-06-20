@@ -22,7 +22,7 @@ export default async function HomePage() {
           <h1>Складай власну карту розвитку.</h1>
           <form className="command-search route-search" action="/activities">
             <Search size={18} />
-            <input name="search" placeholder="Знайти крок за навичкою, форматом або треком…" />
+            <input name="search" placeholder="Знайти крок за навичкою, форматом або напрямом…" />
             <kbd>↵</kbd>
             <button className="button button-primary" type="submit">
               Знайти
@@ -44,7 +44,7 @@ export default async function HomePage() {
       <section className="landing-block compass-section">
         <div className="section-heading">
           <div>
-            <p>Треки розвитку</p>
+            <p>Напрями розвитку</p>
             <h2>Оберіть, яку сторону портфоліо посилити.</h2>
           </div>
           <Link href="/activities">
