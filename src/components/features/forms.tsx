@@ -441,11 +441,13 @@ export function ReviewDialog({
   id,
   title,
   evidenceUrl,
+  evidenceUrls,
 }: {
   kind: 'application' | 'report';
   id: string;
   title: string;
   evidenceUrl?: string;
+  evidenceUrls?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'approved' | 'rejected' | 'needs_changes'>('approved');
@@ -453,6 +455,7 @@ export function ReviewDialog({
   const [pending, setPending] = useState(false);
   const { push } = useToast();
   const router = useRouter();
+  const fileUrls = evidenceUrls?.length ? evidenceUrls : evidenceUrl ? [evidenceUrl] : [];
   const submit = async (form: HTMLFormElement) => {
     setPending(true);
     const result = await request('/api/reviews', 'POST', {
@@ -505,16 +508,21 @@ export function ReviewDialog({
               Відхилити
             </button>
           </div>
-          {kind === 'report' && evidenceUrl && (
-            <a
-              className="button button-secondary"
-              href={evidenceUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <ExternalLink size={16} aria-hidden />
-              Відкрити файл доказу
-            </a>
+          {fileUrls.length > 0 && (
+            <div className="dialog-file-list">
+              {fileUrls.map((url, index) => (
+                <a
+                  className="button button-secondary"
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  key={url}
+                >
+                  <ExternalLink size={16} aria-hidden />
+                  {fileUrls.length > 1 ? `Файл доказу ${index + 1}` : 'Відкрити файл доказу'}
+                </a>
+              ))}
+            </div>
           )}
           <label className="form-label">
             Коментар для студента
