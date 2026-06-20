@@ -96,7 +96,7 @@ git push -u origin main
 
 ```text
 Runtime: Node
-Build Command: npm ci && npm run build
+Build Command: npm ci && npm run render:build
 Start Command: npm run start
 ```
 
@@ -118,15 +118,7 @@ IMAGEKIT_PRIVATE_KEY=
 IMAGEKIT_FOLDER=/studentflow
 ```
 
-`npm run build` компілює production-збірку Next.js. `npm run start` запускає її в production-режимі. Логотип/індикатор Next.js зліва знизу з’являється тільки в dev-режимі; для локального dev він додатково вимкнений у `next.config.ts`.
-
-Перед першим деплоєм або після зміни seed-даних виконайте локально з заповненим `.env`:
-
-```powershell
-npm run setup
-```
-
-Це створить схему в Supabase, наповнить порожню базу і синхронізує ImageKit.
+`npm run render:build` спочатку застосовує Supabase-міграції, наповнює порожню базу, синхронізує ImageKit за потреби, а потім компілює production-збірку Next.js. `npm run start` запускає її в production-режимі. Логотип/індикатор Next.js зліва знизу з’являється тільки в dev-режимі; для локального dev він додатково вимкнений у `next.config.ts`.
 
 ### Автоматичний запуск paused Supabase
 
@@ -145,7 +137,7 @@ SUPABASE_WAKE_ENABLED=true
 - якщо Supabase відповідає як paused/unavailable, сервер надсилає `POST /v1/projects/{ref}/restore` через Supabase Management API;
 - навіть якщо гість відкрив сторінку без читання таблиць, layout робить легку server-side перевірку статусу не частіше ніж раз на 60 секунд;
 - повторний restore-запит обмежений інтервалом 10 секунд;
-- поки база запускається, сайт показує екран очікування й перевіряє `/api/system/database-status` кожні 10 секунд;
+- поки база справді paused/недоступна, сайт показує екран очікування й перевіряє `/api/system/database-status` кожні 10 секунд;
 - коли Supabase стає доступною, сторінка автоматично оновлюється.
 
 ## Структура

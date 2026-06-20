@@ -51,7 +51,7 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
   }, [status]);
 
   return (
-    <main className="database-wait-page">
+    <div className="database-wait-page">
       <section className="database-wait-card">
         <div className="database-loader" aria-hidden="true" />
         <p className="eyebrow">StudentFlow</p>
@@ -67,6 +67,6 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
           </button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

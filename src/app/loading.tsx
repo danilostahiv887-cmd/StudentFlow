@@ -1,5 +1,8 @@
-import { DatabaseWaiter } from '@/components/features/database-waiter';
-
 export default function Loading() {
-  return <DatabaseWaiter />;
+  return (
+    <div className="route-loading" role="status" aria-live="polite">
+      <span className="route-loader" aria-hidden="true" />
+      <span>Завантаження</span>
+    </div>
+  );
 }

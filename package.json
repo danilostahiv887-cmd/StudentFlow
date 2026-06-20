@@ -8,13 +8,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx scripts/supabase-migrate.ts",
     "db:seed": "tsx scripts/supabase-seed.ts",
     "db:seed:force": "tsx scripts/supabase-seed.ts --force",
     "imagekit:seed": "tsx scripts/imagekit-seed.ts",
-    "setup": "npm run db:migrate && tsx scripts/setup-supabase.ts"
+    "setup": "npm run db:migrate && tsx scripts/setup-supabase.ts",
+    "render:build": "npm run setup && npm run build"
   },
   "dependencies": {
     "@imagekit/nodejs": "^7.8.0",

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="StudentFlow">
+  <defs>
+    <linearGradient id="sf-bg" x1="76" y1="56" x2="436" y2="456" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#151922"/>
+      <stop offset="1" stop-color="#080b10"/>
+    </linearGradient>
+    <linearGradient id="sf-cyan" x1="112" y1="350" x2="408" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5be3ef"/>
+      <stop offset="1" stop-color="#26c6da"/>
+    </linearGradient>
+    <linearGradient id="sf-violet" x1="120" y1="170" x2="402" y2="184" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#7e57c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#sf-bg)"/>
+  <path d="M150 174c61-44 143-47 217-2" fill="none" stroke="url(#sf-violet)" stroke-width="64" stroke-linecap="round"/>
+  <path d="M146 340c77 0 112-56 174-56 47 0 77 24 94 61" fill="none" stroke="url(#sf-cyan)" stroke-width="64" stroke-linecap="round"/>
+  <circle cx="145" cy="340" r="34" fill="#bee24b"/>
+  <circle cx="367" cy="172" r="34" fill="#ff6961"/>
+  <circle cx="318" cy="284" r="18" fill="#f6f1e8"/>
+</svg>
