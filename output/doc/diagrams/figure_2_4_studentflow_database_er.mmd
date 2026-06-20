@@ -1,0 +1,64 @@
+erDiagram
+  SPECIALITIES ||--o{ GROUPS : contains
+  SPECIALITIES ||--o{ PROFILES : selected_by
+  GROUPS ||--o{ PROFILES : includes
+  PROFILES ||--o{ CLUBS : leads
+  PROFILES ||--o{ ACTIVITIES : mentors
+  PROFILES ||--o{ APPLICATIONS : submits
+  PROFILES ||--o{ REPORTS : writes
+  PROFILES ||--o{ REPORTS : reviews
+  CATEGORIES ||--o{ ACTIVITIES : classifies
+  CATEGORIES ||--o{ BADGES : limits
+  CLUBS ||--o{ ACTIVITIES : hosts
+  ACTIVITIES ||--o{ APPLICATIONS : receives
+  ACTIVITIES ||--o{ REPORTS : confirms
+  APPLICATIONS ||--o| REPORTS : produces
+  BADGES ||--o{ STUDENT_BADGES : granted_as
+  PROFILES ||--o{ STUDENT_BADGES : earns
+  MEDIA_ASSETS }o--|| ACTIVITIES : visualizes
+  MEDIA_ASSETS }o--|| CLUBS : visualizes
+  MEDIA_ASSETS }o--|| BADGES : visualizes
+
+  SPECIALITIES {
+    text id
+    text code
+    text name
+  }
+  GROUPS {
+    text id
+    text name
+    int startYear
+    int endYear
+  }
+  PROFILES {
+    text id
+    text fullName
+    text email
+    text role
+    int pointsTotal
+  }
+  ACTIVITIES {
+    text id
+    text title
+    text slug
+    text format
+    text status
+    int points
+  }
+  APPLICATIONS {
+    text id
+    text status
+    text motivation
+  }
+  REPORTS {
+    text id
+    text status
+    int hoursSpent
+    text evidenceUrl
+  }
+  BADGES {
+    text id
+    text title
+    text conditionType
+    int conditionValue
+  }

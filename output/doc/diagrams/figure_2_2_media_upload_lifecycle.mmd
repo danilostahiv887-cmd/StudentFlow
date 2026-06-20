@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant U as Користувач
+  participant F as Форма
+  participant API as /api/media
+  participant IK as ImageKit
+  participant DB as Supabase
+
+  U->>F: Обирає зображення
+  F->>F: Показує локальний preview
+  U->>F: Натискає "Зберегти"
+  F->>API: Надсилає файл
+  API->>IK: Завантажує медіа
+  IK-->>API: fileId, url, thumbnailUrl
+  API-->>F: Дані медіа
+  F->>DB: Зберігає сутність із imageKey/url
+  alt Збереження сутності не вдалося
+    F->>API: DELETE fileId
+    API->>IK: Видаляє зайвий файл
+  else Збереження успішне
+    DB-->>F: Оновлений запис
+  end
