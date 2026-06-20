@@ -23,7 +23,11 @@ export default async function TeacherDashboard() {
         <div className="workspace-main">
           <div className="dashboard-grid">
             <DashboardMetric label="Докази в черзі" value={pendingEvidence.length} accent="coral" />
-            <DashboardMetric label="Мої можливості" value={activities.length} accent="violet" />
+            <DashboardMetric
+              label="Призначені можливості"
+              value={activities.length}
+              accent="violet"
+            />
             <DashboardMetric label="Студенти в участі" value={mentoredStudents} accent="aqua" />
             <DashboardMetric
               label="Прийнято доказів"
@@ -56,7 +60,7 @@ export default async function TeacherDashboard() {
             <section className="surface">
               <div className="surface-head">
                 <h2>Студентські участі</h2>
-                <Link href="/teacher/activities">Мої можливості</Link>
+                <Link href="/teacher/participations">Усі участі</Link>
               </div>
               {applications.length ? (
                 applications.slice(0, 4).map((item) => (

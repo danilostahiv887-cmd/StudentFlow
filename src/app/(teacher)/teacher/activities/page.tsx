@@ -37,8 +37,9 @@ export default async function TeacherActivitiesPage({
       <div className="page-intro">
         <div>
           <p className="eyebrow">Менторський простір</p>
-          <h1>Мої можливості</h1>
+          <h1>Призначені можливості</h1>
         </div>
+        <p>Це активності, де адміністратор призначив вас ментором.</p>
       </div>
       <div className="workspace">
         <WorkspaceNav role="teacher" active="/teacher/activities" />
@@ -65,7 +66,10 @@ export default async function TeacherActivitiesPage({
                 ))}
               </div>
             ) : (
-              <EmptyState title="Можливостей не знайдено" body="Змініть пошук або стан." />
+              <EmptyState
+                title="Призначених можливостей не знайдено"
+                body="Змініть пошук або стан."
+              />
             )}
             <Pagination
               page={result.page}
