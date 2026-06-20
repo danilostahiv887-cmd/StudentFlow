@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 import type {
   Activity,
   Application,
@@ -94,7 +95,7 @@ async function runSupabaseQuery<T extends { error: unknown }>(label: string, ope
   }
 }
 
-export async function readDatabase(): Promise<DatabaseSnapshot> {
+async function loadDatabase(): Promise<DatabaseSnapshot> {
   const [
     profiles,
     specialities,
@@ -135,6 +136,8 @@ export async function readDatabase(): Promise<DatabaseSnapshot> {
     studentBadges,
   };
 }
+
+export const readDatabase = cache(loadDatabase);
 
 export async function insertRow<T extends { id: string }>(table: TableName, row: T) {
   const { error } = await runSupabaseQuery(`insert ${table}`, () => supabaseAdmin().from(table).insert(row));

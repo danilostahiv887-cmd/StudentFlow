@@ -5,12 +5,21 @@ import { compare } from 'bcryptjs';
 export type ActivityFilters = { search?: string; category?: string; club?: string; format?: string; difficulty?: string; available?: string; sort?: string; page?: number; pageSize?: number; };
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number; pageCount: number; };
 
-export function activityView(database: DatabaseSnapshot, activity: Activity): ActivityView {
+function approvedCounts(database: DatabaseSnapshot) {
+  const counts = new Map<string, number>();
+  for (const application of database.applications) {
+    if (!['approved', 'attended'].includes(application.status)) continue;
+    counts.set(application.activityId, (counts.get(application.activityId) ?? 0) + 1);
+  }
+  return counts;
+}
+
+export function activityView(database: DatabaseSnapshot, activity: Activity, counts = approvedCounts(database)): ActivityView {
   const category = database.categories.find((item) => item.id === activity.categoryId)!;
   const club = database.clubs.find((item) => item.id === activity.clubId)!;
   const teacher = database.profiles.find((item) => item.id === activity.teacherId)!;
   const media = database.mediaAssets.find((item) => item.kind === 'activity' && item.imageKey === activity.imageKey);
-  const approvedCount = database.applications.filter((item) => item.activityId === activity.id && ['approved', 'attended'].includes(item.status)).length;
+  const approvedCount = counts.get(activity.id) ?? 0;
   return { ...activity, category, club, teacher, approvedCount, availablePlaces: Math.max(0, activity.maxParticipants - approvedCount), imageUrl: media?.url, imageAlt: media?.alt };
 }
 
@@ -21,19 +30,27 @@ export function makePage<T>(items: T[], page = 1, pageSize = 6): Page<T> {
   return { items: items.slice((safePage - 1) * safePageSize, safePage * safePageSize), total: items.length, page: safePage, pageSize: safePageSize, pageCount };
 }
 
-export async function listActivities(filters: ActivityFilters = {}) {
-  const database = await readDatabase();
-  let items = database.activities.filter((item) => item.status === 'published').map((item) => activityView(database, item));
+export function buildActivityPage(database: DatabaseSnapshot, filters: ActivityFilters = {}) {
+  const counts = approvedCounts(database);
+  let items = database.activities.filter((item) => item.status === 'published');
   const needle = filters.search?.trim().toLocaleLowerCase('uk-UA');
   if (needle) items = items.filter((item) => `${item.title} ${item.shortDescription} ${item.description}`.toLocaleLowerCase('uk-UA').includes(needle));
   if (filters.category) items = items.filter((item) => item.categoryId === filters.category);
   if (filters.club) items = items.filter((item) => item.clubId === filters.club);
   if (filters.format) items = items.filter((item) => item.format === filters.format);
   if (filters.difficulty) items = items.filter((item) => item.difficulty === filters.difficulty);
-  if (filters.available === 'yes') items = items.filter((item) => item.availablePlaces > 0);
+  if (filters.available === 'yes') items = items.filter((item) => item.maxParticipants - (counts.get(item.id) ?? 0) > 0);
+
   const sort = filters.sort ?? 'closest';
-  items.sort((a, b) => sort === 'points' ? b.points - a.points : sort === 'popular' ? b.approvedCount - a.approvedCount : new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-  return { ...makePage(items, filters.page, filters.pageSize), categories: database.categories, clubs: database.clubs };
+  items.sort((a, b) => sort === 'points' ? b.points - a.points : sort === 'popular' ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) : new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+
+  const page = makePage(items, filters.page, filters.pageSize);
+  return { ...page, items: page.items.map((item) => activityView(database, item, counts)), categories: database.categories, clubs: database.clubs };
+}
+
+export async function listActivities(filters: ActivityFilters = {}) {
+  const database = await readDatabase();
+  return buildActivityPage(database, filters);
 }
 
 export async function getActivityBySlug(slug: string) {
