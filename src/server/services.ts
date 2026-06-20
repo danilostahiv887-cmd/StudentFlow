@@ -8,7 +8,7 @@ import type {
   ReportStatus,
 } from '@/types/entities';
 import { hash } from 'bcryptjs';
-import { readDatabase, replaceDatabase as writeDatabase } from '@/server/supabase-store';
+import { readDatabase, syncDatabase as writeDatabase } from '@/server/supabase-store';
 import { deleteImageKitFile } from '@/server/imagekit';
 
 export class DomainError extends Error {}
