@@ -9,7 +9,9 @@ async function main() {
   const existingRows = Object.values(existing).reduce((total, rows) => total + rows.length, 0);
 
   if (!force && existingRows > 0) {
-    console.log(`Supabase already contains data (${existingRows} rows). Seed skipped. Use npm run db:seed:force to reset and refill.`);
+    console.log(
+      `Supabase already contains data (${existingRows} rows). Seed skipped. Use npm run db:seed:force to reset and refill.`,
+    );
     return;
   }
 

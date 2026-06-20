@@ -1,42 +1,391 @@
 import Link from 'next/link';
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from 'react';
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
 import { applicationLabel, reportLabel, statusTone } from '@/lib/constants';
 import { formatDateOnly } from '@/lib/formatters';
 import type { ActivityView, Badge } from '@/types/entities';
 
-export function AppButton({ variant = 'primary', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger' }) { return <button className={`button button-${variant} ${className}`} {...props} />; }
-export function AppInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input className={`field ${className}`} {...props} />; }
-export function AppTextarea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className={`field field-area ${className}`} {...props} />; }
-export function AppSelect({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <select className={`field ${className}`} {...props} />; }
-export function FieldError({ children }: { children?: ReactNode }) { return children ? <p className="field-error" role="alert">{children}</p> : null; }
-export function FormErrorSummary({ children }: { children?: ReactNode }) { return children ? <div className="form-error" role="alert">{children}</div> : null; }
+export function AppButton({
+  variant = 'primary',
+  className = '',
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+}) {
+  return <button className={`button button-${variant} ${className}`} {...props} />;
+}
+export function AppInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={`field ${className}`} {...props} />;
+}
+export function AppTextarea({
+  className = '',
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={`field field-area ${className}`} {...props} />;
+}
+export function AppSelect({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={`field ${className}`} {...props} />;
+}
+export function FieldError({ children }: { children?: ReactNode }) {
+  return children ? (
+    <p className="field-error" role="alert">
+      {children}
+    </p>
+  ) : null;
+}
+export function FormErrorSummary({ children }: { children?: ReactNode }) {
+  return children ? (
+    <div className="form-error" role="alert">
+      {children}
+    </div>
+  ) : null;
+}
 
 export function StatusBadge({ status }: { status: string }) {
-  const labels = { ...applicationLabel, ...reportLabel, published: 'Опубліковано', active: 'Активний', inactive: 'Неактивний' } as Record<string, string>;
-  return <span className={`status status-${statusTone[status] ?? 'muted'}`}>{labels[status] ?? status}</span>;
+  const labels = {
+    ...applicationLabel,
+    ...reportLabel,
+    published: 'Опубліковано',
+    active: 'Активний',
+    inactive: 'Неактивний',
+  } as Record<string, string>;
+  return (
+    <span className={`status status-${statusTone[status] ?? 'muted'}`}>
+      {labels[status] ?? status}
+    </span>
+  );
 }
-export function FilterChip({ children, href }: { children: ReactNode; href?: string }) { return href ? <Link className="filter-chip" href={href}>{children}</Link> : <span className="filter-chip">{children}</span>; }
-export function ActiveFiltersBar({ filters }: { filters: { label: string; href: string }[] }) { return filters.length ? <div className="filters-active"><span>Обрано:</span>{filters.map((filter) => <FilterChip key={filter.label} href={filter.href}>{filter.label} ×</FilterChip>)}</div> : null; }
+export function FilterChip({ children, href }: { children: ReactNode; href?: string }) {
+  return href ? (
+    <Link className="filter-chip" href={href}>
+      {children}
+    </Link>
+  ) : (
+    <span className="filter-chip">{children}</span>
+  );
+}
+export function ActiveFiltersBar({ filters }: { filters: { label: string; href: string }[] }) {
+  return filters.length ? (
+    <div className="filters-active">
+      <span>Обрано:</span>
+      {filters.map((filter) => (
+        <FilterChip key={filter.label} href={filter.href}>
+          {filter.label} ×
+        </FilterChip>
+      ))}
+    </div>
+  ) : null;
+}
 
-export function Pagination({ page, pageCount, total, pathname, query, pageParam = 'page' }: { page: number; pageCount: number; total: number; pathname: string; query: Record<string, string | undefined>; pageParam?: string }) {
-  const href = (target: number) => `${pathname}?${new URLSearchParams(Object.entries({ ...query, [pageParam]: String(target) }).filter(([, value]) => Boolean(value)) as [string, string][]).toString()}`;
-  const numbers = Array.from(new Set([1, page - 1, page, page + 1, pageCount].filter((item) => item >= 1 && item <= pageCount)));
-  return <nav className="pagination" aria-label="Пагінація"><span>{total} записів · сторінка {page} з {pageCount}</span><div><Link aria-disabled={page <= 1} className="icon-button" href={href(Math.max(1, page - 1))}><ChevronLeft size={16} /></Link><div className="pagination-pages">{numbers.map((item, index) => <Link aria-current={item === page ? 'page' : undefined} className="page-link" href={href(item)} key={`${item}-${index}`}>{item}</Link>)}</div><Link aria-disabled={page >= pageCount} className="icon-button" href={href(Math.min(pageCount, page + 1))}><ChevronRight size={16} /></Link></div></nav>;
+export function Pagination({
+  page,
+  pageCount,
+  total,
+  pathname,
+  query,
+  pageParam = 'page',
+}: {
+  page: number;
+  pageCount: number;
+  total: number;
+  pathname: string;
+  query: Record<string, string | undefined>;
+  pageParam?: string;
+}) {
+  const href = (target: number) =>
+    `${pathname}?${new URLSearchParams(Object.entries({ ...query, [pageParam]: String(target) }).filter(([, value]) => Boolean(value)) as [string, string][]).toString()}`;
+  const numbers = Array.from(
+    new Set(
+      [1, page - 1, page, page + 1, pageCount].filter((item) => item >= 1 && item <= pageCount),
+    ),
+  );
+  return (
+    <nav className="pagination" aria-label="Пагінація">
+      <span>
+        {total} записів · сторінка {page} з {pageCount}
+      </span>
+      <div>
+        <Link aria-disabled={page <= 1} className="icon-button" href={href(Math.max(1, page - 1))}>
+          <ChevronLeft size={16} />
+        </Link>
+        <div className="pagination-pages">
+          {numbers.map((item, index) => (
+            <Link
+              aria-current={item === page ? 'page' : undefined}
+              className="page-link"
+              href={href(item)}
+              key={`${item}-${index}`}
+            >
+              {item}
+            </Link>
+          ))}
+        </div>
+        <Link
+          aria-disabled={page >= pageCount}
+          className="icon-button"
+          href={href(Math.min(pageCount, page + 1))}
+        >
+          <ChevronRight size={16} />
+        </Link>
+      </div>
+    </nav>
+  );
 }
-export function PageSizeSelect({ value }: { value: number }) { return <label className="size-select">На сторінці <select className="field" name="pageSize" defaultValue={value}><option value="6">6</option><option value="12">12</option><option value="24">24</option></select></label>; }
-export function SearchBox({ defaultValue, placeholder = 'Пошук' }: { defaultValue?: string; placeholder?: string }) { return <label className="search-box"><Search size={17} /><input name="search" defaultValue={defaultValue} placeholder={placeholder} aria-label={placeholder} /></label>; }
-export function ListControls({ pathname, search, pageSize, placeholder = 'Пошук', resetLabel = 'Скинути', hidden = {}, children }: { pathname: string; search?: string; pageSize: number; placeholder?: string; resetLabel?: string; hidden?: Record<string, string | undefined>; children?: ReactNode }) {
-  return <form className="catalog-toolbar list-controls" action={pathname}><SearchBox defaultValue={search} placeholder={placeholder} />{Object.entries(hidden).map(([name, value]) => value ? <input type="hidden" name={name} value={value} key={name} /> : null)}{children}<PageSizeSelect value={pageSize} /><button className="button button-secondary" type="submit">Застосувати</button><Link className="button button-ghost" href={pathname}>{resetLabel}</Link></form>;
+export function PageSizeSelect({ value }: { value: number }) {
+  return (
+    <label className="size-select">
+      На сторінці{' '}
+      <select className="field" name="pageSize" defaultValue={value}>
+        <option value="6">6</option>
+        <option value="12">12</option>
+        <option value="24">24</option>
+      </select>
+    </label>
+  );
 }
-export function FilterButton({ children = 'Фільтри' }: { children?: ReactNode }) { return <button type="button" className="button button-secondary filter-trigger"><SlidersHorizontal size={16} />{children}</button>; }
-export function SkeletonCard() { return <div className="skeleton-card" aria-label="Завантаження" />; }
-export function EmptyState({ title, body, action }: { title: string; body: string; action?: ReactNode }) { return <section className="empty-state"><span className="empty-mark">✦</span><h2>{title}</h2><p>{body}</p>{action}</section>; }
-export function DashboardMetric({ label, value, accent = 'aqua', hint }: { label: string; value: string | number; accent?: string; hint?: string }) { return <article className={`metric metric-${accent}`}><span>{label}</span><strong>{value}</strong>{hint && <small>{hint}</small>}</article>; }
-export function ProgressRing({ value, label }: { value: number; label: string }) { return <div className="progress-ring" style={{ '--progress': `${Math.min(Math.max(value, 0), 100)}%` } as React.CSSProperties}><div><b>{value}%</b><span>{label}</span></div></div>; }
+export function SearchBox({
+  defaultValue,
+  placeholder = 'Пошук',
+}: {
+  defaultValue?: string;
+  placeholder?: string;
+}) {
+  return (
+    <label className="search-box">
+      <Search size={17} />
+      <input
+        name="search"
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        aria-label={placeholder}
+      />
+    </label>
+  );
+}
+export function ListControls({
+  pathname,
+  search,
+  pageSize,
+  placeholder = 'Пошук',
+  resetLabel = 'Скинути',
+  hidden = {},
+  children,
+}: {
+  pathname: string;
+  search?: string;
+  pageSize: number;
+  placeholder?: string;
+  resetLabel?: string;
+  hidden?: Record<string, string | undefined>;
+  children?: ReactNode;
+}) {
+  return (
+    <form className="catalog-toolbar list-controls" action={pathname}>
+      <SearchBox defaultValue={search} placeholder={placeholder} />
+      {Object.entries(hidden).map(([name, value]) =>
+        value ? <input type="hidden" name={name} value={value} key={name} /> : null,
+      )}
+      {children}
+      <PageSizeSelect value={pageSize} />
+      <button className="button button-secondary" type="submit">
+        Застосувати
+      </button>
+      <Link className="button button-ghost" href={pathname}>
+        {resetLabel}
+      </Link>
+    </form>
+  );
+}
+export function FilterButton({ children = 'Фільтри' }: { children?: ReactNode }) {
+  return (
+    <button type="button" className="button button-secondary filter-trigger">
+      <SlidersHorizontal size={16} />
+      {children}
+    </button>
+  );
+}
+export function SkeletonCard() {
+  return <div className="skeleton-card" aria-label="Завантаження" />;
+}
+export function EmptyState({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className="empty-state">
+      <span className="empty-mark">✦</span>
+      <h2>{title}</h2>
+      <p>{body}</p>
+      {action}
+    </section>
+  );
+}
+export function DashboardMetric({
+  label,
+  value,
+  accent = 'aqua',
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  accent?: string;
+  hint?: string;
+}) {
+  return (
+    <article className={`metric metric-${accent}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {hint && <small>{hint}</small>}
+    </article>
+  );
+}
+export function ProgressRing({ value, label }: { value: number; label: string }) {
+  return (
+    <div
+      className="progress-ring"
+      style={{ '--progress': `${Math.min(Math.max(value, 0), 100)}%` } as React.CSSProperties}
+    >
+      <div>
+        <b>{value}%</b>
+        <span>{label}</span>
+      </div>
+    </div>
+  );
+}
 
-const position: Record<number, string> = { 1: '0% 0%', 2: '33.333% 0%', 3: '66.666% 0%', 4: '100% 0%', 5: '0% 100%', 6: '33.333% 100%', 7: '66.666% 100%', 8: '100% 100%' };
-export function ImageKitImage({ imageKey, alt, priority = false, className = '', url }: { imageKey: number; alt: string; priority?: boolean; className?: string; url?: string }) { return <span role="img" aria-label={alt} data-priority={priority ? 'true' : undefined} className={`imagekit-image ${className}`} style={url ? { backgroundImage: `url(${url})`, backgroundPosition: 'center' } : { backgroundPosition: position[imageKey] ?? position[1] }} />; }
-export function BadgeCard({ badge, unlockedAt, progress, imageUrl }: { badge: Badge; unlockedAt?: string; progress?: number; imageUrl?: string }) { return <article className={`badge-card ${unlockedAt ? 'badge-unlocked' : 'badge-locked'}`}><img src={imageUrl || `/seed-images/badges/badge-${badge.imageKey}.png`} alt="" width="64" height="64" /><div><StatusBadge status={unlockedAt ? 'approved' : 'draft'} /><h3>{badge.title}</h3><p>{badge.description}</p>{unlockedAt ? <small>Відкрито {formatDateOnly(unlockedAt)}</small> : <div className="mini-progress"><i style={{ width: `${progress ?? 0}%` }} /></div>}</div></article>; }
-export function SkillBars({ skills, compact = false }: { skills: string[]; compact?: boolean }) { return <div className={compact ? 'skill-bars compact' : 'skill-bars'}>{skills.slice(0, compact ? 3 : 5).map((skill, index) => <span key={skill}><i style={{ width: `${92 - index * 13}%` }} />{skill}</span>)}</div>; }
-export function ActivityCard({ activity }: { activity: ActivityView }) { return <article className="activity-card opportunity-card"><Link prefetch={false} href={`/activities/${activity.slug}`} className="activity-cover opportunity-map"><ImageKitImage imageKey={activity.imageKey} url={activity.imageUrl} alt={activity.imageAlt ?? activity.title} priority={activity.imageKey <= 3} /><span className={`status-rail rail-${activity.category.color}`} /></Link><div className="activity-body"><div className="card-top"><span>{activity.category.name}</span><span>{activity.points} балів</span></div><h3><Link prefetch={false} href={`/activities/${activity.slug}`}>{activity.title}</Link></h3><p>{activity.shortDescription}</p><SkillBars skills={activity.skills} compact /><div className="activity-meta"><span>{formatDateOnly(activity.startAt)}</span><span>{activity.difficulty === 'beginner' ? 'старт' : activity.difficulty === 'intermediate' ? 'ріст' : 'виклик'}</span></div></div></article>; }
+const position: Record<number, string> = {
+  1: '0% 0%',
+  2: '33.333% 0%',
+  3: '66.666% 0%',
+  4: '100% 0%',
+  5: '0% 100%',
+  6: '33.333% 100%',
+  7: '66.666% 100%',
+  8: '100% 100%',
+};
+export function ImageKitImage({
+  imageKey,
+  alt,
+  priority = false,
+  className = '',
+  url,
+}: {
+  imageKey: number;
+  alt: string;
+  priority?: boolean;
+  className?: string;
+  url?: string;
+}) {
+  return (
+    <span
+      role="img"
+      aria-label={alt}
+      data-priority={priority ? 'true' : undefined}
+      className={`imagekit-image ${className}`}
+      style={
+        url
+          ? { backgroundImage: `url(${url})`, backgroundPosition: 'center' }
+          : { backgroundPosition: position[imageKey] ?? position[1] }
+      }
+    />
+  );
+}
+export function BadgeCard({
+  badge,
+  unlockedAt,
+  progress,
+  imageUrl,
+}: {
+  badge: Badge;
+  unlockedAt?: string;
+  progress?: number;
+  imageUrl?: string;
+}) {
+  return (
+    <article className={`badge-card ${unlockedAt ? 'badge-unlocked' : 'badge-locked'}`}>
+      <img
+        src={imageUrl || `/seed-images/badges/badge-${badge.imageKey}.png`}
+        alt=""
+        width="64"
+        height="64"
+      />
+      <div>
+        <StatusBadge status={unlockedAt ? 'approved' : 'draft'} />
+        <h3>{badge.title}</h3>
+        <p>{badge.description}</p>
+        {unlockedAt ? (
+          <small>Відкрито {formatDateOnly(unlockedAt)}</small>
+        ) : (
+          <div className="mini-progress">
+            <i style={{ width: `${progress ?? 0}%` }} />
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+export function SkillBars({ skills, compact = false }: { skills: string[]; compact?: boolean }) {
+  return (
+    <div className={compact ? 'skill-bars compact' : 'skill-bars'}>
+      {skills.slice(0, compact ? 3 : 5).map((skill, index) => (
+        <span key={skill}>
+          <i style={{ width: `${92 - index * 13}%` }} />
+          {skill}
+        </span>
+      ))}
+    </div>
+  );
+}
+export function ActivityCard({ activity }: { activity: ActivityView }) {
+  return (
+    <article className="activity-card opportunity-card">
+      <Link
+        prefetch={false}
+        href={`/activities/${activity.slug}`}
+        className="activity-cover opportunity-map"
+      >
+        <ImageKitImage
+          imageKey={activity.imageKey}
+          url={activity.imageUrl}
+          alt={activity.imageAlt ?? activity.title}
+          priority={activity.imageKey <= 3}
+        />
+        <span className={`status-rail rail-${activity.category.color}`} />
+      </Link>
+      <div className="activity-body">
+        <div className="card-top">
+          <span>{activity.category.name}</span>
+          <span>{activity.points} балів</span>
+        </div>
+        <h3>
+          <Link prefetch={false} href={`/activities/${activity.slug}`}>
+            {activity.title}
+          </Link>
+        </h3>
+        <p>{activity.shortDescription}</p>
+        <SkillBars skills={activity.skills} compact />
+        <div className="activity-meta">
+          <span>{formatDateOnly(activity.startAt)}</span>
+          <span>
+            {activity.difficulty === 'beginner'
+              ? 'старт'
+              : activity.difficulty === 'intermediate'
+                ? 'ріст'
+                : 'виклик'}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}

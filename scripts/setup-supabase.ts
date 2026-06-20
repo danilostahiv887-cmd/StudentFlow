@@ -19,9 +19,11 @@ function rowCount(database: DatabaseSnapshot) {
 }
 
 function isReferencedMediaAsset(database: DatabaseSnapshot, asset: MediaAsset) {
-  if (asset.kind === 'activity') return database.activities.some((item) => item.imageKey === asset.imageKey);
+  if (asset.kind === 'activity')
+    return database.activities.some((item) => item.imageKey === asset.imageKey);
   if (asset.kind === 'club') return database.clubs.some((item) => item.imageKey === asset.imageKey);
-  if (asset.kind === 'badge') return database.badges.some((item) => item.imageKey === asset.imageKey);
+  if (asset.kind === 'badge')
+    return database.badges.some((item) => item.imageKey === asset.imageKey);
   return database.categories.some((item) => item.imageKey === asset.imageKey);
 }
 
@@ -32,8 +34,12 @@ function needsImageKitSync(database: DatabaseSnapshot) {
   });
 
   const hasLegacySeedEvidence = database.reports.some((report) => {
-    if (!report.id.startsWith('report-') || !report.applicationId.startsWith('application-')) return false;
-    return Boolean(report.evidenceUrl?.includes('studentflow.edu.ua/evidence') || report.evidenceUrl?.startsWith('/seed-images/evidence/'));
+    if (!report.id.startsWith('report-') || !report.applicationId.startsWith('application-'))
+      return false;
+    return Boolean(
+      report.evidenceUrl?.includes('studentflow.edu.ua/evidence') ||
+      report.evidenceUrl?.startsWith('/seed-images/evidence/'),
+    );
   });
 
   return hasUnlinkedReferencedMedia || hasLegacySeedEvidence;
@@ -46,7 +52,9 @@ async function main() {
     console.log('Supabase is empty. Running initial seed.');
     runNpmScript('db:seed');
   } else {
-    console.log(`Supabase already contains data (${rowCount(beforeSeed)} rows). Initial seed skipped.`);
+    console.log(
+      `Supabase already contains data (${rowCount(beforeSeed)} rows). Initial seed skipped.`,
+    );
   }
 
   const database = await readDatabase();

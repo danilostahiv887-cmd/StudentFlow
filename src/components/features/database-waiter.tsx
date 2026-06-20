@@ -14,7 +14,7 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
     const check = async () => {
       try {
         const response = await fetch('/api/system/database-status', { cache: 'no-store' });
-        const data = await response.json() as DatabaseStatus;
+        const data = (await response.json()) as DatabaseStatus;
         if (!alive) return;
         setStatus(data);
         setChecks((value) => value + 1);
@@ -38,8 +38,10 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
   }, [reset]);
 
   const copy = useMemo(() => {
-    if (status?.state === 'unconfigured') return 'Автоматичний запуск бази не налаштований. Потрібно додати Supabase Management API токен у Render.';
-    if (status?.state === 'error') return 'Не вдалося перевірити стан бази. Спробуйте оновити сторінку за кілька секунд.';
+    if (status?.state === 'unconfigured')
+      return 'Автоматичний запуск бази не налаштований. Потрібно додати Supabase Management API токен у Render.';
+    if (status?.state === 'error')
+      return 'Не вдалося перевірити стан бази. Спробуйте оновити сторінку за кілька секунд.';
     if (status?.state === 'ready') return 'База доступна. Оновлюємо сторінку.';
     return 'Підключаємо дані StudentFlow. Якщо база була на паузі, запит на запуск уже надіслано.';
   }, [status]);
@@ -53,10 +55,18 @@ export function DatabaseWaiter({ reset }: { reset?: () => void }) {
         <p>{copy}</p>
         <div className="database-wait-meta">
           <span>Перевірка кожні 10 секунд</span>
-          <span>{status?.projectStatus ? `Статус: ${status.projectStatus}` : `Спроба: ${Math.max(checks, 1)}`}</span>
+          <span>
+            {status?.projectStatus
+              ? `Статус: ${status.projectStatus}`
+              : `Спроба: ${Math.max(checks, 1)}`}
+          </span>
         </div>
         <div className="dialog-actions">
-          <button className="button button-primary" type="button" onClick={() => reset ? reset() : window.location.reload()}>
+          <button
+            className="button button-primary"
+            type="button"
+            onClick={() => (reset ? reset() : window.location.reload())}
+          >
             Перевірити зараз
           </button>
         </div>

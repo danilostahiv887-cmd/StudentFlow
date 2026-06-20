@@ -1,138 +1,173 @@
-create table if not exists "specialities" (
-  id text primary key,
-  code text not null unique,
-  name text not null,
-  description text not null default ''
+CREATE TABLE IF NOT EXISTS "specialities" (
+  id TEXT PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT ''
 );
 
-create table if not exists "groups" (
-  id text primary key,
-  name text not null,
-  "specialityId" text not null references "specialities"(id) on delete cascade,
-  "startYear" integer not null,
-  "endYear" integer not null,
-  "isActive" boolean not null default true
+CREATE TABLE IF NOT EXISTS "groups" (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  "specialityId" TEXT NOT NULL REFERENCES "specialities" (id) ON DELETE CASCADE,
+  "startYear" INTEGER NOT NULL,
+  "endYear" INTEGER NOT NULL,
+  "isActive" BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-create table if not exists "profiles" (
-  id text primary key,
-  "fullName" text not null,
-  email text not null unique,
-  "passwordHash" text not null,
-  role text not null check (role in ('student','teacher','admin')),
-  status text not null check (status in ('active','inactive')),
-  "groupId" text references "groups"(id) on delete set null,
-  "specialityId" text references "specialities"(id) on delete set null,
-  phone text,
-  bio text,
-  "pointsTotal" integer not null default 0
+CREATE TABLE IF NOT EXISTS "profiles" (
+  id TEXT PRIMARY KEY,
+  "fullName" TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  "passwordHash" TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'admin')),
+  status TEXT NOT NULL CHECK (status IN ('active', 'inactive')),
+  "groupId" TEXT REFERENCES "groups" (id) ON DELETE SET NULL,
+  "specialityId" TEXT REFERENCES "specialities" (id) ON DELETE SET NULL,
+  phone TEXT,
+  bio TEXT,
+  "pointsTotal" INTEGER NOT NULL DEFAULT 0
 );
 
-create table if not exists "mediaAssets" (
-  id text primary key,
-  kind text not null check (kind in ('activity','club','badge','visual')),
-  "imageKey" integer not null,
-  "fileName" text not null,
-  "fileId" text,
-  url text not null,
-  "thumbnailUrl" text,
-  alt text not null,
-  width integer,
-  height integer,
-  "dominantColor" text
+CREATE TABLE IF NOT EXISTS "mediaAssets" (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('activity', 'club', 'badge', 'visual')),
+  "imageKey" INTEGER NOT NULL,
+  "fileName" TEXT NOT NULL,
+  "fileId" TEXT,
+  url TEXT NOT NULL,
+  "thumbnailUrl" TEXT,
+  alt TEXT NOT NULL,
+  width INTEGER,
+  height INTEGER,
+  "dominantColor" TEXT
 );
 
-create table if not exists "clubs" (
-  id text primary key,
-  name text not null,
-  slug text not null unique,
-  description text not null default '',
-  "teacherId" text not null references "profiles"(id) on delete cascade,
-  "imageKey" integer not null default 1,
-  status text not null check (status in ('active','inactive'))
+CREATE TABLE IF NOT EXISTS "clubs" (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT NOT NULL DEFAULT '',
+  "teacherId" TEXT NOT NULL REFERENCES "profiles" (id) ON DELETE CASCADE,
+  "imageKey" INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL CHECK (status IN ('active', 'inactive'))
 );
 
-create table if not exists "categories" (
-  id text primary key,
-  name text not null,
-  slug text not null unique,
-  color text not null default 'aqua',
-  "imageKey" integer not null default 1
+CREATE TABLE IF NOT EXISTS "categories" (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  color TEXT NOT NULL DEFAULT 'aqua',
+  "imageKey" INTEGER NOT NULL DEFAULT 1
 );
 
-create table if not exists "activities" (
-  id text primary key,
-  title text not null,
-  slug text not null unique,
-  "shortDescription" text not null,
-  description text not null,
-  "categoryId" text not null references "categories"(id) on delete cascade,
-  "clubId" text not null references "clubs"(id) on delete cascade,
-  "teacherId" text not null references "profiles"(id) on delete cascade,
-  "imageKey" integer not null default 1,
-  format text not null check (format in ('offline','online','hybrid')),
-  location text not null,
-  "startAt" timestamptz not null,
-  "endAt" timestamptz not null,
-  "maxParticipants" integer not null,
-  points integer not null default 0,
-  difficulty text not null check (difficulty in ('beginner','intermediate','advanced')),
-  status text not null check (status in ('published','draft','paused','completed','cancelled','archived')),
-  requirements text not null,
-  "resultDescription" text not null,
-  skills text[] not null default '{}'
+CREATE TABLE IF NOT EXISTS "activities" (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  "shortDescription" TEXT NOT NULL,
+  description TEXT NOT NULL,
+  "categoryId" TEXT NOT NULL REFERENCES "categories" (id) ON DELETE CASCADE,
+  "clubId" TEXT NOT NULL REFERENCES "clubs" (id) ON DELETE CASCADE,
+  "teacherId" TEXT NOT NULL REFERENCES "profiles" (id) ON DELETE CASCADE,
+  "imageKey" INTEGER NOT NULL DEFAULT 1,
+  format TEXT NOT NULL CHECK (format IN ('offline', 'online', 'hybrid')),
+  location TEXT NOT NULL,
+  "startAt" TIMESTAMPTZ NOT NULL,
+  "endAt" TIMESTAMPTZ NOT NULL,
+  "maxParticipants" INTEGER NOT NULL,
+  points INTEGER NOT NULL DEFAULT 0,
+  difficulty TEXT NOT NULL CHECK (
+    difficulty IN ('beginner', 'intermediate', 'advanced')
+  ),
+  status TEXT NOT NULL CHECK (
+    status IN (
+      'published',
+      'draft',
+      'paused',
+      'completed',
+      'cancelled',
+      'archived'
+    )
+  ),
+  requirements TEXT NOT NULL,
+  "resultDescription" TEXT NOT NULL,
+  skills TEXT[] NOT NULL DEFAULT '{}'
 );
 
-create table if not exists "applications" (
-  id text primary key,
-  "activityId" text not null references "activities"(id) on delete cascade,
-  "studentId" text not null references "profiles"(id) on delete cascade,
-  status text not null check (status in ('submitted','under_review','approved','rejected','cancelled','attended','missed')),
-  motivation text not null,
-  "teacherComment" text,
-  "rejectionReason" text,
-  "cancellationReason" text,
-  "createdAt" timestamptz not null,
-  "updatedAt" timestamptz not null
+CREATE TABLE IF NOT EXISTS "applications" (
+  id TEXT PRIMARY KEY,
+  "activityId" TEXT NOT NULL REFERENCES "activities" (id) ON DELETE CASCADE,
+  "studentId" TEXT NOT NULL REFERENCES "profiles" (id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (
+    status IN (
+      'submitted',
+      'under_review',
+      'approved',
+      'rejected',
+      'cancelled',
+      'attended',
+      'missed'
+    )
+  ),
+  motivation TEXT NOT NULL,
+  "teacherComment" TEXT,
+  "rejectionReason" TEXT,
+  "cancellationReason" TEXT,
+  "createdAt" TIMESTAMPTZ NOT NULL,
+  "updatedAt" TIMESTAMPTZ NOT NULL
 );
 
-create table if not exists "reports" (
-  id text primary key,
-  "applicationId" text not null references "applications"(id) on delete cascade,
-  "activityId" text not null references "activities"(id) on delete cascade,
-  "studentId" text not null references "profiles"(id) on delete cascade,
-  status text not null check (status in ('draft','submitted','approved','rejected','needs_changes')),
-  reflection text not null default '',
-  "hoursSpent" integer not null default 0,
-  "skillsGained" text not null default '',
-  "evidenceUrl" text,
-  "teacherFeedback" text,
-  "reviewedBy" text references "profiles"(id) on delete set null,
-  "createdAt" timestamptz not null,
-  "updatedAt" timestamptz not null
+CREATE TABLE IF NOT EXISTS "reports" (
+  id TEXT PRIMARY KEY,
+  "applicationId" TEXT NOT NULL REFERENCES "applications" (id) ON DELETE CASCADE,
+  "activityId" TEXT NOT NULL REFERENCES "activities" (id) ON DELETE CASCADE,
+  "studentId" TEXT NOT NULL REFERENCES "profiles" (id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (
+    status IN (
+      'draft',
+      'submitted',
+      'approved',
+      'rejected',
+      'needs_changes'
+    )
+  ),
+  reflection TEXT NOT NULL DEFAULT '',
+  "hoursSpent" INTEGER NOT NULL DEFAULT 0,
+  "skillsGained" TEXT NOT NULL DEFAULT '',
+  "evidenceUrl" TEXT,
+  "teacherFeedback" TEXT,
+  "reviewedBy" TEXT REFERENCES "profiles" (id) ON DELETE SET NULL,
+  "createdAt" TIMESTAMPTZ NOT NULL,
+  "updatedAt" TIMESTAMPTZ NOT NULL
 );
 
-create table if not exists "badges" (
-  id text primary key,
-  title text not null,
-  description text not null,
-  "imageKey" integer not null default 1,
-  color text not null default 'aqua',
-  "conditionType" text not null check ("conditionType" in ('points','category','activities')),
-  "conditionValue" integer not null,
-  "categoryId" text references "categories"(id) on delete cascade,
-  "isActive" boolean not null default true
+CREATE TABLE IF NOT EXISTS "badges" (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  "imageKey" INTEGER NOT NULL DEFAULT 1,
+  color TEXT NOT NULL DEFAULT 'aqua',
+  "conditionType" TEXT NOT NULL CHECK (
+    "conditionType" IN ('points', 'category', 'activities')
+  ),
+  "conditionValue" INTEGER NOT NULL,
+  "categoryId" TEXT REFERENCES "categories" (id) ON DELETE CASCADE,
+  "isActive" BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-create table if not exists "studentBadges" (
-  id text primary key,
-  "studentId" text not null references "profiles"(id) on delete cascade,
-  "badgeId" text not null references "badges"(id) on delete cascade,
-  "unlockedAt" timestamptz not null
+CREATE TABLE IF NOT EXISTS "studentBadges" (
+  id TEXT PRIMARY KEY,
+  "studentId" TEXT NOT NULL REFERENCES "profiles" (id) ON DELETE CASCADE,
+  "badgeId" TEXT NOT NULL REFERENCES "badges" (id) ON DELETE CASCADE,
+  "unlockedAt" TIMESTAMPTZ NOT NULL
 );
 
-create index if not exists idx_profiles_role on "profiles"(role);
-create index if not exists idx_activities_category on "activities"("categoryId");
-create index if not exists idx_activities_teacher on "activities"("teacherId");
-create index if not exists idx_applications_student on "applications"("studentId");
-create index if not exists idx_reports_status on "reports"(status);
+CREATE INDEX if NOT EXISTS idx_profiles_role ON "profiles" (role);
+
+CREATE INDEX if NOT EXISTS idx_activities_category ON "activities" ("categoryId");
+
+CREATE INDEX if NOT EXISTS idx_activities_teacher ON "activities" ("teacherId");
+
+CREATE INDEX if NOT EXISTS idx_applications_student ON "applications" ("studentId");
+
+CREATE INDEX if NOT EXISTS idx_reports_status ON "reports" (status);

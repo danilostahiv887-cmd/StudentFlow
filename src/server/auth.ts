@@ -18,7 +18,14 @@ export async function requireUser(roles?: Role[]) {
 }
 
 export function sessionCookie(id: string) {
-  return { name: cookieName, value: id, httpOnly: true, sameSite: 'lax' as const, path: '/', maxAge: 60 * 60 * 12 };
+  return {
+    name: cookieName,
+    value: id,
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: 60 * 60 * 12,
+  };
 }
 
 export { cookieName };

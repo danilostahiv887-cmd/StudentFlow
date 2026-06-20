@@ -5,7 +5,35 @@ import '@/app/route-refactor.css';
 import { AppShell } from '@/components/layout/app-shell';
 import { ToastProvider } from '@/components/ui/toast';
 
-export const metadata: Metadata = { metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'), title: { default: 'StudentFlow — маршрут розвитку', template: '%s · StudentFlow' }, description: 'Маршрути розвитку, докази та студентське портфоліо.', icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon.ico', sizes: 'any' }, { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }], apple: '/apple-touch-icon.png' }, manifest: '/site.webmanifest', openGraph: { title: 'StudentFlow', description: 'Маршрути розвитку, докази та студентське портфоліо.', images: [{ url: '/og-preview.png', width: 1680, height: 945 }] } };
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  title: { default: 'StudentFlow — маршрут розвитку', template: '%s · StudentFlow' },
+  description: 'Маршрути розвитку, докази та студентське портфоліо.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
+  openGraph: {
+    title: 'StudentFlow',
+    description: 'Маршрути розвитку, докази та студентське портфоліо.',
+    images: [{ url: '/og-preview.png', width: 1680, height: 945 }],
+  },
+};
 export const viewport: Viewport = { themeColor: '#191b1f' };
 export const dynamic = 'force-dynamic';
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="uk" data-scroll-behavior="smooth"><body><ToastProvider><AppShell>{children}</AppShell></ToastProvider></body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="uk" data-scroll-behavior="smooth">
+      <body>
+        <ToastProvider>
+          <AppShell>{children}</AppShell>
+        </ToastProvider>
+      </body>
+    </html>
+  );
+}

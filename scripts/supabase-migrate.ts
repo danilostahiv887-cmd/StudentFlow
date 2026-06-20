@@ -27,9 +27,13 @@ async function waitForProjectRestore() {
   }
 
   while (status.state !== 'ready') {
-    console.log(`${status.message} Статус: ${status.projectStatus ?? status.state}. Повторна перевірка за 10 секунд.`);
+    console.log(
+      `${status.message} Статус: ${status.projectStatus ?? status.state}. Повторна перевірка за 10 секунд.`,
+    );
     if (Date.now() + pollMs > deadline) {
-      throw new Error('Supabase не стала доступною вчасно. Відновіть проєкт у Dashboard або збільшіть SUPABASE_SETUP_WAIT_MS.');
+      throw new Error(
+        'Supabase не стала доступною вчасно. Відновіть проєкт у Dashboard або збільшіть SUPABASE_SETUP_WAIT_MS.',
+      );
     }
 
     await sleep(pollMs);
@@ -77,7 +81,9 @@ async function main() {
       return;
     } catch (error) {
       if (!shouldAttemptSupabaseWake(error) || Date.now() + pollMs > deadline) throw error;
-      console.log(`Supabase ще не приймає DB-з’єднання: ${shortError(error)}. Повтор за 10 секунд.`);
+      console.log(
+        `Supabase ще не приймає DB-з’єднання: ${shortError(error)}. Повтор за 10 секунд.`,
+      );
       await getSupabaseWakeStatus({ restoreIfPaused: true }).catch(() => undefined);
       await sleep(pollMs);
     }

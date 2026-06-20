@@ -12,7 +12,14 @@ const restoreCooldownMs = 10_000;
 const defaultWaitMs = 25_000;
 const pollMs = 10_000;
 const readyProjectStatuses = new Set(['ACTIVE_HEALTHY', 'ACTIVE_UNHEALTHY']);
-const startingProjectStatuses = new Set(['COMING_UP', 'RESTORING', 'RESTARTING', 'PAUSING', 'RESIZING', 'UNKNOWN']);
+const startingProjectStatuses = new Set([
+  'COMING_UP',
+  'RESTORING',
+  'RESTARTING',
+  'PAUSING',
+  'RESIZING',
+  'UNKNOWN',
+]);
 const pausedProjectStatuses = new Set(['INACTIVE', 'PAUSE_FAILED', 'RESTORE_FAILED']);
 
 const globalWakeState = globalThis as typeof globalThis & {
@@ -58,10 +65,15 @@ async function getProjectStatus() {
   const response = await managementRequest(`/projects/${config.projectRef}`);
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    throw new Error(`Supabase Management API status ${response.status}: ${body || response.statusText}`);
+    throw new Error(
+      `Supabase Management API status ${response.status}: ${body || response.statusText}`,
+    );
   }
 
-  const project = await response.json() as { status?: string; databases?: Array<{ status?: string }> };
+  const project = (await response.json()) as {
+    status?: string;
+    databases?: Array<{ status?: string }>;
+  };
   return project.status ?? project.databases?.[0]?.status ?? 'UNKNOWN';
 }
 
@@ -74,30 +86,44 @@ async function requestRestore() {
   if (now - store.lastRestoreAt < restoreCooldownMs) return false;
 
   store.lastRestoreAt = now;
-  const response = await managementRequest(`/projects/${config.projectRef}/restore`, { method: 'POST' });
+  const response = await managementRequest(`/projects/${config.projectRef}/restore`, {
+    method: 'POST',
+  });
 
   if ([200, 202, 204, 409].includes(response.status)) return true;
   const body = await response.text().catch(() => '');
   if (/no longer|not.*paused|already|restoring|coming_up/i.test(body)) return false;
-  throw new Error(`Supabase restore request failed ${response.status}: ${body || response.statusText}`);
+  throw new Error(
+    `Supabase restore request failed ${response.status}: ${body || response.statusText}`,
+  );
 }
 
 export function shouldAttemptSupabaseWake(error: unknown) {
   const text = error instanceof Error ? `${error.name} ${error.message}` : JSON.stringify(error);
-  return /(^|\D)540(\D|$)|paused|inactive|temporarily unavailable|service unavailable|gateway timeout|fetch failed|failed to fetch|network|timeout|ECONNRESET|ENOTFOUND|tenant\/user .* not found|supavisor/i.test(text);
+  return /(^|\D)540(\D|$)|paused|inactive|temporarily unavailable|service unavailable|gateway timeout|fetch failed|failed to fetch|network|timeout|ECONNRESET|ENOTFOUND|tenant\/user .* not found|supavisor/i.test(
+    text,
+  );
 }
 
-export function databaseStartingError(message = 'База даних StudentFlow запускається. Повторіть запит за кілька секунд.') {
+export function databaseStartingError(
+  message = 'База даних StudentFlow запускається. Повторіть запит за кілька секунд.',
+) {
   const error = new Error(`STUDENTFLOW_DATABASE_STARTING: ${message}`);
   error.name = 'DatabaseStartingError';
   return error;
 }
 
 export function isDatabaseStartingError(error: unknown) {
-  return error instanceof Error && (error.name === 'DatabaseStartingError' || error.message.includes('STUDENTFLOW_DATABASE_STARTING'));
+  return (
+    error instanceof Error &&
+    (error.name === 'DatabaseStartingError' ||
+      error.message.includes('STUDENTFLOW_DATABASE_STARTING'))
+  );
 }
 
-export async function getSupabaseWakeStatus(options: { restoreIfPaused?: boolean } = {}): Promise<SupabaseWakeStatus> {
+export async function getSupabaseWakeStatus(
+  options: { restoreIfPaused?: boolean } = {},
+): Promise<SupabaseWakeStatus> {
   if (!wakeConfig()) {
     return {
       state: 'unconfigured',
@@ -119,7 +145,9 @@ export async function getSupabaseWakeStatus(options: { restoreIfPaused?: boolean
         state: 'paused',
         projectStatus,
         restoreRequested,
-        message: restoreRequested ? 'Надіслано запит на запуск Supabase.' : 'Supabase ще запускається або запит уже надсилали нещодавно.',
+        message: restoreRequested
+          ? 'Надіслано запит на запуск Supabase.'
+          : 'Supabase ще запускається або запит уже надсилали нещодавно.',
       };
     }
 
@@ -142,7 +170,9 @@ export async function ensureSupabaseAwake(reason = 'database request') {
 
   store.inFlight = getSupabaseWakeStatus({ restoreIfPaused: true })
     .then((status) => ({ ...status, message: `${status.message} Причина: ${reason}.` }))
-    .finally(() => { store.inFlight = undefined; });
+    .finally(() => {
+      store.inFlight = undefined;
+    });
 
   return store.inFlight;
 }

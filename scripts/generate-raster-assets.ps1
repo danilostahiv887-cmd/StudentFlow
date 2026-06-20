@@ -4,7 +4,8 @@ $root = Split-Path -Parent $PSScriptRoot
 $badgeDir = Join-Path $root 'public\seed-images\badges'
 $clubDir = Join-Path $root 'public\seed-images\clubs'
 $systemDir = Join-Path $root 'public\seed-images\system'
-New-Item -ItemType Directory -Force -Path $badgeDir, $clubDir, $systemDir | Out-Null
+New-Item -ItemType Directory -Force -Path $badgeDir, $clubDir, $systemDir |
+  Out-Null
 
 $palette = @(
   [System.Drawing.Color]::FromArgb(38, 198, 218),
@@ -30,9 +31,23 @@ for ($i = 0; $i -lt $palette.Count; $i++) {
   $format = [System.Drawing.StringFormat]::new()
   $format.Alignment = [System.Drawing.StringAlignment]::Center
   $format.LineAlignment = [System.Drawing.StringAlignment]::Center
-  $graphics.DrawString(($i + 1).ToString(), $font, $brush, [System.Drawing.RectangleF]::new(0, 0, 256, 256), $format)
-  $bitmap.Save((Join-Path $badgeDir ("badge-{0}.png" -f ($i + 1))), [System.Drawing.Imaging.ImageFormat]::Png)
-  $font.Dispose(); $format.Dispose(); $inner.Dispose(); $brush.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
+  $graphics.DrawString(
+    ($i + 1).ToString(),
+    $font,
+    $brush,
+    [System.Drawing.RectangleF]::new(0, 0, 256, 256),
+    $format
+  )
+  $bitmap.Save(
+    (Join-Path $badgeDir ("badge-{0}.png" -f ($i + 1))),
+    [System.Drawing.Imaging.ImageFormat]::Png
+  )
+  $font.Dispose()
+  $format.Dispose()
+  $inner.Dispose()
+  $brush.Dispose()
+  $graphics.Dispose()
+  $bitmap.Dispose()
 }
 
 $atlas = Join-Path $root 'public\seed-images\activities\campus-pulse-atlas.png'
@@ -48,10 +63,26 @@ $aqua = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(38, 19
 $violet = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(126, 87, 194))
 $iconGraphics.FillRectangle($aqua, 17, 17, 42, 94)
 $iconGraphics.FillRectangle($violet, 69, 17, 42, 94)
-$iconBitmap.Save((Join-Path $root 'public\favicon-32x32.png'), [System.Drawing.Imaging.ImageFormat]::Png)
-$iconBitmap.Save((Join-Path $root 'public\apple-touch-icon.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+$iconBitmap.Save(
+  (Join-Path $root 'public\favicon-32x32.png'),
+  [System.Drawing.Imaging.ImageFormat]::Png
+)
+$iconBitmap.Save(
+  (Join-Path $root 'public\apple-touch-icon.png'),
+  [System.Drawing.Imaging.ImageFormat]::Png
+)
 $icon = [System.Drawing.Icon]::FromHandle($iconBitmap.GetHicon())
 $stream = [System.IO.File]::Open((Join-Path $root 'public\favicon.ico'), [System.IO.FileMode]::Create)
 $icon.Save($stream)
-$stream.Dispose(); $icon.Dispose(); $aqua.Dispose(); $violet.Dispose(); $iconGraphics.Dispose(); $iconBitmap.Dispose()
-Copy-Item -LiteralPath (Join-Path $root 'public\favicon-32x32.png') -Destination (Join-Path $root 'public\favicon-16x16.png') -Force
+$stream.Dispose()
+$icon.Dispose()
+$aqua.Dispose()
+$violet.Dispose()
+$iconGraphics.Dispose()
+$iconBitmap.Dispose()
+$copyIconParams = @{
+  LiteralPath = Join-Path $root 'public\favicon-32x32.png'
+  Destination  = Join-Path $root 'public\favicon-16x16.png'
+  Force        = $true
+}
+Copy-Item @copyIconParams

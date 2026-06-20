@@ -1,0 +1,11 @@
+node_modules
+.next
+coverage
+output
+*.md
+*.puml
+*.png
+*.ico
+*.7z
+*.bat
+*.ps1
