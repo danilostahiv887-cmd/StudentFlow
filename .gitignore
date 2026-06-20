@@ -6,3 +6,4 @@ coverage
 *.7z
 tsconfig.tsbuildinfo
 data/studentflow.local.json
+output/doc/
