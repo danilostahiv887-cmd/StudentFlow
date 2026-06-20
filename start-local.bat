@@ -54,7 +54,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [3/5] Migrating and seeding Supabase.
+echo [3/5] Preparing Supabase ^(seed only when empty^).
 call npm run setup
 if errorlevel 1 (
   echo [ERROR] Supabase/ImageKit setup failed. Check .env values and network access.

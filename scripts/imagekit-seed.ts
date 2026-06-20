@@ -3,6 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import ImageKit from '@imagekit/nodejs';
 import { readDatabase, replaceDatabase } from '../src/server/supabase-store';
+import type { DatabaseSnapshot, MediaAsset } from '../src/types/entities';
+
+function isReferencedMediaAsset(db: DatabaseSnapshot, asset: MediaAsset) {
+  if (asset.kind === 'activity') return db.activities.some((item) => item.imageKey === asset.imageKey);
+  if (asset.kind === 'club') return db.clubs.some((item) => item.imageKey === asset.imageKey);
+  if (asset.kind === 'badge') return db.badges.some((item) => item.imageKey === asset.imageKey);
+  return db.categories.some((item) => item.imageKey === asset.imageKey);
+}
 
 async function main() {
   if (!process.env.IMAGEKIT_PRIVATE_KEY || !process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT) {
@@ -18,6 +26,10 @@ async function main() {
   let changed = false;
 
   for (const asset of db.mediaAssets) {
+    if (!isReferencedMediaAsset(db, asset)) {
+      console.log(`ImageKit asset is not connected to database entities, skipped: ${asset.fileName || asset.imageKey}`);
+      continue;
+    }
     if (asset.fileId && asset.url?.startsWith('http')) {
       console.log(`ImageKit asset already linked: ${asset.fileName || asset.imageKey}`);
       continue;

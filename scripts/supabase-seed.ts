@@ -6,9 +6,10 @@ import { readDatabase, replaceDatabase } from '../src/server/supabase-store';
 async function main() {
   const force = process.argv.includes('--force');
   const existing = await readDatabase();
+  const existingRows = Object.values(existing).reduce((total, rows) => total + rows.length, 0);
 
-  if (!force && existing.profiles.length > 0) {
-    console.log('Supabase already contains profiles. Seed skipped. Use npm run db:seed:force to reset and refill.');
+  if (!force && existingRows > 0) {
+    console.log(`Supabase already contains data (${existingRows} rows). Seed skipped. Use npm run db:seed:force to reset and refill.`);
     return;
   }
 

@@ -14,7 +14,7 @@
     "db:seed": "tsx scripts/supabase-seed.ts",
     "db:seed:force": "tsx scripts/supabase-seed.ts --force",
     "imagekit:seed": "tsx scripts/imagekit-seed.ts",
-    "setup": "npm run db:migrate && npm run db:seed && npm run imagekit:seed"
+    "setup": "npm run db:migrate && tsx scripts/setup-supabase.ts"
   },
   "dependencies": {
     "@imagekit/nodejs": "^7.8.0",
