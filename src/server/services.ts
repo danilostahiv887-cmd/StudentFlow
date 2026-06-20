@@ -203,6 +203,18 @@ export async function createReference(actor: Profile, kind: 'groups' | 'speciali
   await writeDatabase(database);
 }
 
+export async function grantStudentBadge(actor: Profile, input: { studentId: string; badgeId: string }) {
+  adminOnly(actor);
+  const database = await readDatabase();
+  const student = database.profiles.find((item) => item.id === input.studentId && item.role === 'student');
+  const badge = database.badges.find((item) => item.id === input.badgeId && item.isActive);
+  if (!student || !badge) throw new DomainError('Студента або відзнаку не знайдено.');
+  if (!database.studentBadges.some((item) => item.studentId === student.id && item.badgeId === badge.id)) {
+    database.studentBadges.push({ id: randomUUID(), studentId: student.id, badgeId: badge.id, unlockedAt: now() });
+  }
+  await writeDatabase(database);
+}
+
 export async function updateAdminEntity(actor: Profile, input: { entity: string; id: string; values: Record<string, string> }) {
   adminOnly(actor);
   const database = await readDatabase();
@@ -357,6 +369,9 @@ export async function deleteAdminEntity(actor: Profile, input: { entity: string;
   }
   if (input.entity === 'badge') {
     await deleteBadge(input.id);
+  }
+  if (input.entity === 'studentBadge') {
+    database.studentBadges = database.studentBadges.filter((item) => item.id !== input.id);
   }
   if (input.entity === 'mediaAsset') {
     const asset = database.mediaAssets.find((item) => item.id === input.id);

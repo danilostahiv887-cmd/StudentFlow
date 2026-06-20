@@ -38,7 +38,15 @@ export async function listActivities(filters: ActivityFilters = {}) {
 
 export async function getActivityBySlug(slug: string) {
   const database = await readDatabase();
-  const activity = database.activities.find((item) => item.slug === slug);
+  const normalize = (value: string) => {
+    try {
+      return decodeURIComponent(value).normalize('NFC');
+    } catch {
+      return value.normalize('NFC');
+    }
+  };
+  const requested = normalize(slug);
+  const activity = database.activities.find((item) => normalize(item.slug) === requested);
   return activity ? activityView(database, activity) : undefined;
 }
 

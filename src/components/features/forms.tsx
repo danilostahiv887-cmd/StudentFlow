@@ -348,6 +348,37 @@ export function ToggleUserButton({ profileId, status }: { profileId: string; sta
   );
 }
 
+export function StudentBadgeToggle({ studentId, badgeId, studentBadgeId }: { studentId: string; badgeId: string; studentBadgeId?: string }) {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const { push } = useToast();
+  const router = useRouter();
+  const grant = async () => {
+    setPending(true);
+    const result = await request('/api/admin', 'POST', { action: 'studentBadge', studentId, badgeId });
+    setPending(false);
+    if (!result.success) return push(result.formError ?? 'Не вдалося видати відзнаку.');
+    push('Відзнаку видано студенту.');
+    router.refresh();
+  };
+  const revoke = async () => {
+    if (!studentBadgeId) return;
+    setPending(true);
+    const result = await request('/api/admin', 'DELETE', { entity: 'studentBadge', id: studentBadgeId });
+    setPending(false);
+    if (!result.success) return push(result.formError ?? 'Не вдалося забрати відзнаку.');
+    setOpen(false);
+    push('Відзнаку забрано.');
+    router.refresh();
+  };
+  return (
+    <>
+      {studentBadgeId ? <AppButton type="button" variant="danger" disabled={pending} onClick={() => setOpen(true)}>Забрати</AppButton> : <AppButton type="button" variant="secondary" disabled={pending} onClick={() => void grant()}>{pending ? 'Видаємо…' : 'Видати'}</AppButton>}
+      <ConfirmDialog open={open} title="Забрати відзнаку" message="Відзнака зникне з портфоліо студента. Її можна буде видати повторно вручну." confirmText={pending ? 'Зачекайте…' : 'Забрати'} danger onCancel={() => setOpen(false)} onConfirm={() => void revoke()} />
+    </>
+  );
+}
+
 export function ProfileForm({ profile, groups, specialities }: { profile: { fullName: string; phone?: string; bio?: string; groupId?: string; specialityId?: string; role: string }; groups: { id: string; name: string }[]; specialities: { id: string; name: string }[] }) {
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
