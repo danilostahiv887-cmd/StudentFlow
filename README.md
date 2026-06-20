@@ -109,6 +109,9 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_DB_URL=
+SUPABASE_PROJECT_REF=wkjvchswentqsixduewf
+SUPABASE_ACCESS_TOKEN=
+SUPABASE_WAKE_ENABLED=true
 NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
 NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
 IMAGEKIT_PRIVATE_KEY=
@@ -124,6 +127,26 @@ npm run setup
 ```
 
 Це створить схему в Supabase, наповнить порожню базу і синхронізує ImageKit.
+
+### Автоматичний запуск paused Supabase
+
+На Free Plan Supabase може ставити проєкт на паузу після низької активності або після ручного `Pause project`. Щоб перший відвідувач сайту на Render автоматично запускав БД, додайте в Render Environment:
+
+```env
+SUPABASE_PROJECT_REF=wkjvchswentqsixduewf
+SUPABASE_ACCESS_TOKEN=sbp_...
+SUPABASE_WAKE_ENABLED=true
+```
+
+`SUPABASE_ACCESS_TOKEN` створюється в Supabase Dashboard → Account → Access Tokens. Токен має залишатися тільки на сервері Render, без префікса `NEXT_PUBLIC_`.
+
+Як це працює:
+
+- якщо Supabase відповідає як paused/unavailable, сервер надсилає `POST /v1/projects/{ref}/restore` через Supabase Management API;
+- навіть якщо гість відкрив сторінку без читання таблиць, layout робить легку server-side перевірку статусу не частіше ніж раз на 60 секунд;
+- повторний restore-запит обмежений інтервалом 10 секунд;
+- поки база запускається, сайт показує екран очікування й перевіряє `/api/system/database-status` кожні 10 секунд;
+- коли Supabase стає доступною, сторінка автоматично оновлюється.
 
 ## Структура
 

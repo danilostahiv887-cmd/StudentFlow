@@ -13,6 +13,7 @@ import type {
   Speciality,
   StudentBadge,
 } from '@/types/entities';
+import { databaseStartingError, shouldAttemptSupabaseWake, waitForSupabaseReady } from '@/server/supabase-wake';
 
 type TableName =
   | 'profiles'
@@ -75,9 +76,22 @@ export function supabaseAdmin() {
 }
 
 async function selectAll<T>(table: TableName) {
-  const { data, error } = await supabaseAdmin().from(table).select('*');
+  const { data, error } = await runSupabaseQuery(`read ${table}`, () => supabaseAdmin().from(table).select('*'));
   if (error) throw new Error(`Supabase read ${table}: ${error.message}`);
   return (data ?? []) as T[];
+}
+
+async function runSupabaseQuery<T extends { error: unknown }>(label: string, operation: () => PromiseLike<T>) {
+  try {
+    const result = await operation();
+    if (!result.error || !shouldAttemptSupabaseWake(result.error)) return result;
+    if (await waitForSupabaseReady(label)) return operation();
+    throw databaseStartingError();
+  } catch (error) {
+    if (!shouldAttemptSupabaseWake(error)) throw error;
+    if (await waitForSupabaseReady(label)) return operation();
+    throw databaseStartingError();
+  }
 }
 
 export async function readDatabase(): Promise<DatabaseSnapshot> {
@@ -123,33 +137,33 @@ export async function readDatabase(): Promise<DatabaseSnapshot> {
 }
 
 export async function insertRow<T extends { id: string }>(table: TableName, row: T) {
-  const { error } = await supabaseAdmin().from(table).insert(row);
+  const { error } = await runSupabaseQuery(`insert ${table}`, () => supabaseAdmin().from(table).insert(row));
   if (error) throw new Error(`Supabase insert ${table}: ${error.message}`);
 }
 
 export async function upsertRow<T extends { id: string }>(table: TableName, row: T) {
-  const { error } = await supabaseAdmin().from(table).upsert(row, { onConflict: 'id' });
+  const { error } = await runSupabaseQuery(`upsert ${table}`, () => supabaseAdmin().from(table).upsert(row, { onConflict: 'id' }));
   if (error) throw new Error(`Supabase upsert ${table}: ${error.message}`);
 }
 
 export async function updateRow(table: TableName, id: string, patch: Record<string, unknown>) {
-  const { error } = await supabaseAdmin().from(table).update(patch).eq('id', id);
+  const { error } = await runSupabaseQuery(`update ${table}`, () => supabaseAdmin().from(table).update(patch).eq('id', id));
   if (error) throw new Error(`Supabase update ${table}: ${error.message}`);
 }
 
 export async function deleteRow(table: TableName, id: string) {
-  const { error } = await supabaseAdmin().from(table).delete().eq('id', id);
+  const { error } = await runSupabaseQuery(`delete ${table}`, () => supabaseAdmin().from(table).delete().eq('id', id));
   if (error) throw new Error(`Supabase delete ${table}: ${error.message}`);
 }
 
 export async function deleteWhere(table: TableName, column: string, value: string) {
-  const { error } = await supabaseAdmin().from(table).delete().eq(column, value);
+  const { error } = await runSupabaseQuery(`delete ${table}.${column}`, () => supabaseAdmin().from(table).delete().eq(column, value));
   if (error) throw new Error(`Supabase delete ${table}.${column}: ${error.message}`);
 }
 
 export async function replaceDatabase(snapshot: DatabaseSnapshot) {
   for (const table of childFirst) {
-    const { error } = await supabaseAdmin().from(table).delete().neq('id', '__never__');
+    const { error } = await runSupabaseQuery(`clear ${table}`, () => supabaseAdmin().from(table).delete().neq('id', '__never__'));
     if (error) throw new Error(`Supabase clear ${table}: ${error.message}`);
   }
 
@@ -169,7 +183,7 @@ export async function replaceDatabase(snapshot: DatabaseSnapshot) {
 
   for (const table of tableOrder) {
     if (!rows[table].length) continue;
-    const { error } = await supabaseAdmin().from(table).insert(rows[table]);
+    const { error } = await runSupabaseQuery(`seed ${table}`, () => supabaseAdmin().from(table).insert(rows[table]));
     if (error) throw new Error(`Supabase seed ${table}: ${error.message}`);
   }
 }

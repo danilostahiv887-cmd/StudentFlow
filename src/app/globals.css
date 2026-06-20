@@ -30,3 +30,13 @@
 .badge-card img{object-fit:cover;border-radius:12px;background:#eee}
 @media(max-width:780px){.modal-grid-2{grid-template-columns:1fr}.app-modal-lg{width:min(100%,680px)}.image-preview{min-height:190px}}
 @media(max-width:640px){.modal-backdrop{align-items:end;padding:0 8px 8px}.app-modal,.app-modal-sm,.app-modal-lg{width:100%;max-height:calc(100svh - 14px);border-radius:22px 22px 16px 16px}.modal-head{padding:16px 16px 12px}.modal-body{padding:14px 16px 16px}.app-modal .dialog-actions{bottom:-16px;margin:0 -16px -16px;padding:12px 16px 16px}.image-preview{min-height:170px}.image-picker-actions{display:grid;grid-template-columns:1fr}.image-picker-actions .button{width:100%}.data-row-actions{flex-wrap:wrap}}
+.database-wait-page{display:grid;min-height:calc(100svh - 86px);place-items:center;padding:28px;background:radial-gradient(circle at 50% 0,rgba(38,198,218,.18),transparent 35%),var(--graphite);color:white}
+.database-wait-card{width:min(560px,100%);padding:34px;border:1px solid rgba(255,255,255,.13);border-radius:var(--radius);background:rgba(25,27,31,.92);box-shadow:0 30px 90px rgba(0,0,0,.35);text-align:center}
+.database-wait-card h1{margin:8px 0 12px;font-size:clamp(32px,6vw,54px);line-height:.95;letter-spacing:-.06em}
+.database-wait-card p{margin:0 auto;color:#d7d5d8}
+.database-loader{width:58px;height:58px;margin:0 auto 20px;border:5px solid rgba(255,255,255,.14);border-top-color:var(--aqua);border-radius:50%;animation:database-spin 1s linear infinite}
+.database-wait-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px 0 0}
+.database-wait-meta span{padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.07);color:#c7c6ca;font-size:12px;font-weight:800}
+.database-wait-card .dialog-actions{justify-content:center}
+@keyframes database-spin{to{transform:rotate(360deg)}}
+@media(max-width:640px){.database-wait-page{padding:16px}.database-wait-card{padding:26px 18px}.database-wait-meta{display:grid}.database-wait-card .button{width:100%}}
