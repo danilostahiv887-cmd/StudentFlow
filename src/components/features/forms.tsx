@@ -47,7 +47,8 @@ function ImagePicker({
   const effectiveUrl = removed ? '' : uploaded?.url ?? '';
 
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
     setError(undefined);
     setRemoved(false);
@@ -77,7 +78,7 @@ function ImagePicker({
       setPreview(initialUrl);
     } finally {
       setUploading(false);
-      event.currentTarget.value = '';
+      input.value = '';
     }
   };
 
