@@ -1,12 +1,22 @@
 import { requireUser } from '@/server/auth';
-import { getDb } from '@/server/repository';
+import { getDb, makePage } from '@/server/repository';
 import { WorkspaceNav } from '@/components/layout/workspace-nav';
-import { BadgeCard } from '@/components/ui/primitives';
+import { AppSelect, BadgeCard, EmptyState, ListControls, Pagination } from '@/components/ui/primitives';
 import { AdminCreateDialog, AdminCrudActions } from '@/components/features/forms';
 
-export default async function AdminBadgesPage() {
+type Search = { search?: string; state?: string; page?: string; pageSize?: string };
+
+export default async function AdminBadgesPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireUser(['admin']);
+  const query = await searchParams;
   const db = await getDb();
+  const pageSize = Number(query.pageSize ?? 6);
+  const needle = query.search?.trim().toLocaleLowerCase('uk-UA');
+  let badges = db.badges.filter((badge) => !needle || `${badge.title} ${badge.description}`.toLocaleLowerCase('uk-UA').includes(needle));
+  if (query.state === 'active') badges = badges.filter((badge) => badge.isActive);
+  if (query.state === 'inactive') badges = badges.filter((badge) => !badge.isActive);
+  const result = makePage(badges, Number(query.page ?? 1), pageSize);
+  const listQuery = { search: query.search, state: query.state, pageSize: query.pageSize };
   return (
     <div className="page">
       <div className="page-intro">
@@ -17,8 +27,15 @@ export default async function AdminBadgesPage() {
         <WorkspaceNav role="admin" active="/admin/badges" />
         <div className="workspace-main">
           <section className="surface">
-            <div className="badge-grid">
-              {db.badges.map((badge) => {
+            <ListControls pathname="/admin/badges" search={query.search} pageSize={pageSize} placeholder="Назва або умова">
+              <AppSelect name="state" defaultValue={query.state ?? ''}>
+                <option value="">Усі відзнаки</option>
+                <option value="active">Активні</option>
+                <option value="inactive">Неактивні</option>
+              </AppSelect>
+            </ListControls>
+            {result.items.length ? <div className="badge-grid">
+              {result.items.map((badge) => {
                 const media = db.mediaAssets.find((item) => item.kind === 'badge' && item.imageKey === badge.imageKey);
                 return (
                   <div key={badge.id}>
@@ -37,7 +54,8 @@ export default async function AdminBadgesPage() {
                   </div>
                 );
               })}
-            </div>
+            </div> : <EmptyState title="Відзнак не знайдено" body="Змініть пошук або стан." />}
+            <Pagination page={result.page} pageCount={result.pageCount} total={result.total} pathname="/admin/badges" query={listQuery} />
           </section>
         </div>
       </div>
