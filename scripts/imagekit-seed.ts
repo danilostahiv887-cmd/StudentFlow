@@ -14,6 +14,7 @@ async function main() {
   const folder = process.env.IMAGEKIT_FOLDER || '/studentflow';
   const db = await readDatabase();
   const source = path.join(process.cwd(), 'public', 'seed-images', 'visuals', 'skill-route-map.png');
+  const evidenceSource = path.join(process.cwd(), 'public', 'seed-images', 'evidence', 'studentflow-evidence-placeholder.svg');
   let changed = false;
 
   for (const asset of db.mediaAssets) {
@@ -35,6 +36,25 @@ async function main() {
     asset.height = uploaded.height ?? asset.height;
     changed = true;
     console.log(`Uploaded ImageKit asset: ${fileName}`);
+  }
+
+  const seededReports = db.reports.filter((report) => report.id.startsWith('report-') && report.applicationId.startsWith('application-') && report.evidenceUrl);
+  const evidenceNeedsSync = seededReports.some((report) => report.evidenceUrl?.includes('studentflow.edu.ua/evidence') || report.evidenceUrl?.startsWith('/seed-images/evidence/'));
+  if (evidenceNeedsSync) {
+    const response = await client.files.upload({
+      file: fs.createReadStream(evidenceSource),
+      fileName: 'studentflow-evidence-placeholder.svg',
+      folder: `${folder.replace(/\/$/, '')}/evidence`,
+      useUniqueFileName: false,
+      overwriteFile: true,
+    });
+    const uploaded = response as { url?: string };
+    if (!uploaded.url) throw new Error('ImageKit did not return a URL for the evidence placeholder.');
+    for (const report of seededReports) report.evidenceUrl = uploaded.url;
+    changed = true;
+    console.log(`Uploaded ImageKit evidence placeholder: ${uploaded.url}`);
+  } else {
+    console.log('Seed evidence URLs are already synchronized.');
   }
 
   if (changed) {

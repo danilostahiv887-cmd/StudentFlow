@@ -28,6 +28,7 @@ const specialityRows: Speciality[] = [
 
 const groupCodes = ['11', '12', '21', '22', '31', '32', '41', '42'];
 const startByCourse: Record<string, number> = { '1': 2025, '2': 2024, '3': 2023, '4': 2022 };
+const seededEvidenceUrl = '/seed-images/evidence/studentflow-evidence-placeholder.svg';
 
 function slug(value: string) {
   return value.toLocaleLowerCase('uk-UA').replace(/[^a-zа-яіїєґ0-9]+/gi, '-').replace(/^-|-$/g, '');
@@ -177,7 +178,7 @@ export async function buildSeed(hashPassword: HashFn, imageBase = process.env.NE
       applications.push({ id: applicationId, activityId: activity.id, studentId, status, motivation: `Хочу посилити портфоліо через «${activity.title}» і отримати підтверджений доказ результату.`, teacherComment: status === 'cancelled' ? 'Студент переніс участь на інший трек.' : undefined, createdAt: new Date(Date.UTC(2026, 5, 10 + studentIndex, 10, offset)).toISOString(), updatedAt: new Date(Date.UTC(2026, 5, 11 + studentIndex, 10, offset)).toISOString() });
       if (status === 'attended' || (status === 'approved' && offset % 2 === 0)) {
         const reportStatus: ParticipationReport['status'] = status === 'attended' ? 'approved' : (studentIndex + offset) % 3 === 0 ? 'submitted' : 'needs_changes';
-        reports.push({ id: `report-${reportCounter++}`, applicationId, activityId: activity.id, studentId, status: reportStatus, reflection: `Під час роботи над «${activity.title}» я підготував/підготувала артефакт, описав/описала рішення і зафіксував/зафіксувала наступні кроки для портфоліо.`, hoursSpent: 2 + ((studentIndex + offset) % 5), skillsGained: activity.skills.slice(0, 3).join(', '), evidenceUrl: `https://studentflow.edu.ua/evidence/${applicationId}`, teacherFeedback: reportStatus === 'approved' ? 'Доказ прийнято: видно результат, роль студента і конкретні компетентності.' : reportStatus === 'needs_changes' ? 'Потрібно додати посилання на фінальний артефакт і коротший висновок.' : undefined, reviewedBy: reportStatus === 'approved' || reportStatus === 'needs_changes' ? activity.teacherId : undefined, createdAt: new Date(Date.UTC(2026, 5, 16 + studentIndex, 12, offset)).toISOString(), updatedAt: new Date(Date.UTC(2026, 5, 17 + studentIndex, 12, offset)).toISOString() });
+        reports.push({ id: `report-${reportCounter++}`, applicationId, activityId: activity.id, studentId, status: reportStatus, reflection: `Під час роботи над «${activity.title}» я підготував/підготувала артефакт, описав/описала рішення і зафіксував/зафіксувала наступні кроки для портфоліо.`, hoursSpent: 2 + ((studentIndex + offset) % 5), skillsGained: activity.skills.slice(0, 3).join(', '), evidenceUrl: seededEvidenceUrl, teacherFeedback: reportStatus === 'approved' ? 'Доказ прийнято: видно результат, роль студента і конкретні компетентності.' : reportStatus === 'needs_changes' ? 'Потрібно додати посилання на фінальний артефакт і коротший висновок.' : undefined, reviewedBy: reportStatus === 'approved' || reportStatus === 'needs_changes' ? activity.teacherId : undefined, createdAt: new Date(Date.UTC(2026, 5, 16 + studentIndex, 12, offset)).toISOString(), updatedAt: new Date(Date.UTC(2026, 5, 17 + studentIndex, 12, offset)).toISOString() });
       }
     }
   });

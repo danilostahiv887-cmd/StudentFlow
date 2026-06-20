@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="StudentFlow evidence placeholder">
+  <rect width="640" height="360" fill="#191b1f"/>
+  <rect x="24" y="24" width="592" height="312" rx="26" fill="#202329" stroke="#48c8d8" stroke-width="2"/>
+  <text x="48" y="86" fill="#48c8d8" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">StudentFlow</text>
+  <text x="48" y="178" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Тестовий доказ</text>
+  <text x="48" y="224" fill="#b9bbc2" font-family="Arial, Helvetica, sans-serif" font-size="18">Seed-файл для перевірки відкриття доказів</text>
+</svg>
