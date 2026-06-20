@@ -822,7 +822,7 @@ export function AdminCreateDialog({
         open={open}
         title={heading}
         onClose={() => setOpen(false)}
-        size={kind === 'teacher' ? 'md' : 'lg'}
+        size={kind === 'activity' ? 'lg' : 'md'}
       >
         <form
           className="modal-form"
@@ -882,8 +882,9 @@ export function AdminCreateDialog({
                     </AppSelect>
                   </label>
                   <label className="form-label">
-                    Ментор
+                    Менторський доступ
                     <AppSelect name="teacherId">
+                      <option value="">Без ментора</option>
                       {teachers.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.fullName}
@@ -931,37 +932,29 @@ export function AdminCreateDialog({
             </div>
           )}
           {kind === 'reference' && (
-            <div className="modal-grid modal-grid-2">
-              <div className="modal-section">
-                <label className="form-label">
-                  Тип
-                  <AppSelect name="kind">
-                    <option value="groups">Академічна група</option>
-                    <option value="specialities">Спеціальність</option>
-                    <option value="clubs">Майданчик</option>
-                    <option value="categories">Напрям</option>
-                    <option value="badges">Відзнака</option>
-                  </AppSelect>
-                </label>
-                <label className="form-label">
-                  Назва
-                  <AppInput name="name" />
-                </label>
-                <label className="form-label">
-                  Код або колір
-                  <AppInput name="code" placeholder="Наприклад, ІПЗ або aqua" />
-                </label>
-                <label className="form-label">
-                  Опис
-                  <AppTextarea name="description" rows={3} />
-                </label>
-              </div>
-              <ImagePicker
-                label="Візуальний елемент"
-                help="Використовується для майданчика, напряму або відзнаки. Для груп і спеціальностей можна залишити порожнім."
-                altBase="Довідник"
-                folder="/studentflow/reference"
-              />
+            <div className="modal-section">
+              <label className="form-label">
+                Тип
+                <AppSelect name="kind">
+                  <option value="groups">Академічна група</option>
+                  <option value="specialities">Спеціальність</option>
+                  <option value="clubs">Майданчик</option>
+                  <option value="categories">Напрям</option>
+                  <option value="badges">Відзнака</option>
+                </AppSelect>
+              </label>
+              <label className="form-label">
+                Назва
+                <AppInput name="name" />
+              </label>
+              <label className="form-label">
+                Код або колір
+                <AppInput name="code" placeholder="Наприклад, ІПЗ або aqua" />
+              </label>
+              <label className="form-label">
+                Опис
+                <AppTextarea name="description" rows={3} />
+              </label>
             </div>
           )}
           <div className="dialog-actions">
@@ -990,7 +983,7 @@ type CrudField = {
     | 'select'
     | 'datetime-local'
     | 'image';
-  value?: string | number;
+  value?: string | number | null;
   options?: { value: string; label: string }[];
   help?: string;
   alt?: string;

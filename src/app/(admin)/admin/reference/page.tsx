@@ -25,8 +25,6 @@ export default async function AdminReferencePage({
   const needle = query.search?.trim().toLocaleLowerCase('uk-UA');
   const contains = (...parts: Array<string | number | undefined>) =>
     !needle || parts.join(' ').toLocaleLowerCase('uk-UA').includes(needle);
-  const mediaFor = (kind: 'club' | 'visual' | 'badge', imageKey: number) =>
-    db.mediaAssets.find((item) => item.kind === kind && item.imageKey === imageKey);
 
   const groups = makePage(
     db.groups.filter((item) => contains(item.name, item.startYear, item.endYear)),
@@ -155,38 +153,28 @@ export default async function AdminReferencePage({
             <section className="surface">
               <h2>Майданчики</h2>
               <div className="row-list">
-                {clubs.items.map((item) => {
-                  const media = mediaFor('club', item.imageKey);
-                  return (
-                    <div className="queue-row" key={item.id}>
-                      <div>
-                        <b>{item.name}</b>
-                        <small>{item.description}</small>
-                      </div>
-                      <AdminCrudActions
-                        entity="club"
-                        id={item.id}
-                        title={item.name}
-                        fields={[
-                          {
-                            name: 'image',
-                            label: 'Зображення майданчика',
-                            type: 'image',
-                            value: media?.url ?? '',
-                            alt: item.name,
-                          },
-                          { name: 'name', label: 'Назва', value: item.name },
-                          {
-                            name: 'description',
-                            label: 'Опис',
-                            type: 'textarea',
-                            value: item.description,
-                          },
-                        ]}
-                      />
+                {clubs.items.map((item) => (
+                  <div className="queue-row" key={item.id}>
+                    <div>
+                      <b>{item.name}</b>
+                      <small>{item.description}</small>
                     </div>
-                  );
-                })}
+                    <AdminCrudActions
+                      entity="club"
+                      id={item.id}
+                      title={item.name}
+                      fields={[
+                        { name: 'name', label: 'Назва', value: item.name },
+                        {
+                          name: 'description',
+                          label: 'Опис',
+                          type: 'textarea',
+                          value: item.description,
+                        },
+                      ]}
+                    />
+                  </div>
+                ))}
               </div>
               <Pagination
                 page={clubs.page}
@@ -200,33 +188,23 @@ export default async function AdminReferencePage({
             <section className="surface">
               <h2>Напрями</h2>
               <div className="row-list">
-                {categories.items.map((item) => {
-                  const media = mediaFor('visual', item.imageKey);
-                  return (
-                    <div className="queue-row" key={item.id}>
-                      <div>
-                        <b>{item.name}</b>
-                        <small>{item.color}</small>
-                      </div>
-                      <AdminCrudActions
-                        entity="category"
-                        id={item.id}
-                        title={item.name}
-                        fields={[
-                          {
-                            name: 'image',
-                            label: 'Візуальний елемент напряму',
-                            type: 'image',
-                            value: media?.url ?? '',
-                            alt: item.name,
-                          },
-                          { name: 'name', label: 'Назва', value: item.name },
-                          { name: 'color', label: 'Акцент', value: item.color },
-                        ]}
-                      />
+                {categories.items.map((item) => (
+                  <div className="queue-row" key={item.id}>
+                    <div>
+                      <b>{item.name}</b>
+                      <small>{item.color}</small>
                     </div>
-                  );
-                })}
+                    <AdminCrudActions
+                      entity="category"
+                      id={item.id}
+                      title={item.name}
+                      fields={[
+                        { name: 'name', label: 'Назва', value: item.name },
+                        { name: 'color', label: 'Акцент', value: item.color },
+                      ]}
+                    />
+                  </div>
+                ))}
               </div>
               <Pagination
                 page={categories.page}

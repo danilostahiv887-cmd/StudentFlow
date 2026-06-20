@@ -43,7 +43,17 @@ export function activityView(
 ): ActivityView {
   const category = database.categories.find((item) => item.id === activity.categoryId)!;
   const club = database.clubs.find((item) => item.id === activity.clubId)!;
-  const teacher = database.profiles.find((item) => item.id === activity.teacherId)!;
+  const teacher =
+    database.profiles.find((item) => item.id === activity.teacherId) ??
+    ({
+      id: '',
+      fullName: 'Ментор не призначений',
+      email: '',
+      passwordHash: '',
+      role: 'teacher',
+      status: 'inactive',
+      pointsTotal: 0,
+    } satisfies Profile);
   const media = database.mediaAssets.find(
     (item) => item.kind === 'activity' && item.imageKey === activity.imageKey,
   );

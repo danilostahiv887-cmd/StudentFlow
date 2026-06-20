@@ -28,7 +28,10 @@ export default async function AdminActivitiesPage({
   const { database, activities, teachers } = await adminData();
   const categoryOptions = database.categories.map((item) => ({ value: item.id, label: item.name }));
   const clubOptions = database.clubs.map((item) => ({ value: item.id, label: item.name }));
-  const teacherOptions = teachers.map((item) => ({ value: item.id, label: item.fullName }));
+  const teacherOptions = [
+    { value: '', label: 'Без ментора' },
+    ...teachers.map((item) => ({ value: item.id, label: item.fullName })),
+  ];
   const pageSize = Number(query.pageSize ?? 6);
   const needle = query.search?.trim().toLocaleLowerCase('uk-UA');
   let filtered = activities.filter(
@@ -135,7 +138,7 @@ export default async function AdminActivitiesPage({
                         },
                         {
                           name: 'teacherId',
-                          label: 'Ментор',
+                          label: 'Менторський доступ',
                           type: 'select',
                           value: activity.teacherId,
                           options: teacherOptions,

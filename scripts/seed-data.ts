@@ -556,7 +556,7 @@ export async function buildSeed(
                 : undefined,
           reviewedBy:
             reportStatus === 'approved' || reportStatus === 'needs_changes'
-              ? activity.teacherId
+              ? (activity.teacherId ?? undefined)
               : undefined,
           createdAt: new Date(Date.UTC(2026, 5, 16 + studentIndex, 12, offset)).toISOString(),
           updatedAt: new Date(Date.UTC(2026, 5, 17 + studentIndex, 12, offset)).toISOString(),

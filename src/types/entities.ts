@@ -83,7 +83,7 @@ export interface Activity {
   description: string;
   categoryId: string;
   clubId: string;
-  teacherId: string;
+  teacherId: string | null;
   imageKey: number;
   format: ActivityFormat;
   location: string;

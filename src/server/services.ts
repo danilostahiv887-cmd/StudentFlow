@@ -390,7 +390,7 @@ export async function createActivity(
     shortDescription: string;
     categoryId: string;
     clubId: string;
-    teacherId: string;
+    teacherId?: string;
     format: string;
     location: string;
     startAt: string;
@@ -405,12 +405,14 @@ export async function createActivity(
   const end = new Date(input.endAt);
   const maxParticipants = Number(input.maxParticipants);
   const points = Number(input.points);
+  const teacherId = input.teacherId?.trim() || null;
   if (
     !input.title.trim() ||
     !input.shortDescription.trim() ||
     !database.categories.some((item) => item.id === input.categoryId) ||
     !database.clubs.some((item) => item.id === input.clubId) ||
-    !database.profiles.some((item) => item.id === input.teacherId && item.role === 'teacher') ||
+    (teacherId &&
+      !database.profiles.some((item) => item.id === teacherId && item.role === 'teacher')) ||
     Number.isNaN(start.getTime()) ||
     Number.isNaN(end.getTime()) ||
     end <= start ||
@@ -434,7 +436,7 @@ export async function createActivity(
     description: input.shortDescription.trim(),
     categoryId: input.categoryId,
     clubId: input.clubId,
-    teacherId: input.teacherId,
+    teacherId,
     imageKey,
     format: input.format as Activity['format'],
     location: input.location.trim() || 'Уточнюється',
@@ -500,7 +502,7 @@ export async function createReference(
       slug,
       description: input.description?.trim() || '',
       teacherId,
-      imageKey: attachMedia(database, 'club', input, input.name.trim()) ?? fallbackImageKey,
+      imageKey: fallbackImageKey,
       status: 'active',
     });
   }
@@ -511,7 +513,7 @@ export async function createReference(
       name: input.name.trim(),
       slug,
       color: input.color || input.code || 'aqua',
-      imageKey: attachMedia(database, 'visual', input, input.name.trim()) ?? fallbackImageKey,
+      imageKey: fallbackImageKey,
     });
   }
   if (kind === 'badges') {
@@ -587,11 +589,13 @@ export async function updateAdminEntity(
       activity.categoryId = values.categoryId;
     if (values.clubId && database.clubs.some((item) => item.id === values.clubId))
       activity.clubId = values.clubId;
-    if (
-      values.teacherId &&
-      database.profiles.some((item) => item.id === values.teacherId && item.role === 'teacher')
-    )
-      activity.teacherId = values.teacherId;
+    if (values.teacherId !== undefined) {
+      const teacherId = values.teacherId.trim();
+      if (!teacherId) activity.teacherId = null;
+      else if (database.profiles.some((item) => item.id === teacherId && item.role === 'teacher'))
+        activity.teacherId = teacherId;
+      else throw new DomainError('Обраного ментора не знайдено.');
+    }
     if (values.status) activity.status = values.status as Activity['status'];
     if (values.format) activity.format = values.format as Activity['format'];
     if (values.location !== undefined) activity.location = values.location.trim();
@@ -638,18 +642,12 @@ export async function updateAdminEntity(
       )
     )
       item.teacherId = values.teacherId;
-    await applyMediaChange(database, 'club', item.imageKey, 1, values, item.name, (value) => {
-      item.imageKey = value;
-    });
   }
   if (input.entity === 'category') {
     const item = database.categories.find((x) => x.id === input.id);
     if (!item) throw new DomainError('Напрям не знайдено.');
     if (values.name?.trim()) item.name = values.name.trim();
     if (values.color?.trim()) item.color = values.color.trim();
-    await applyMediaChange(database, 'visual', item.imageKey, 1, values, item.name, (value) => {
-      item.imageKey = value;
-    });
   }
   if (input.entity === 'badge') {
     const item = database.badges.find((x) => x.id === input.id);
@@ -707,10 +705,11 @@ export async function deleteAdminEntity(actor: Profile, input: { entity: string;
     if (!profile || profile.role === 'admin')
       throw new DomainError('Профіль не знайдено або недоступний для видалення.');
     if (profile.role === 'teacher') {
-      const activities = database.activities.filter((item) => item.teacherId === profile.id);
-      for (const activity of activities) {
-        await deleteActivity(activity.id);
-      }
+      database.activities
+        .filter((item) => item.teacherId === profile.id)
+        .forEach((activity) => {
+          activity.teacherId = null;
+        });
       const clubs = database.clubs.filter((item) => item.teacherId === profile.id);
       for (const club of clubs) {
         await deleteClub(club.id);

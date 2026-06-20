@@ -75,20 +75,27 @@ export default async function AdminReportsPage({
                         {activity?.title} · {report.hoursSpent} год
                       </small>
                       <p>{report.reflection || 'Чернетка доказу'}</p>
-                      {report.evidenceUrl && (
-                        <a href={report.evidenceUrl} target="_blank" rel="noreferrer">
-                          Відкрити файл доказу
-                        </a>
-                      )}
                     </div>
                     <StatusBadge status={report.status} />
                     <small>{report.teacherFeedback || report.skillsGained}</small>
-                    <ReviewDialog
-                      kind="report"
-                      id={report.id}
-                      title={`Доказ: ${student?.fullName ?? ''}`}
-                      evidenceUrl={report.evidenceUrl}
-                    />
+                    <div className="data-row-actions">
+                      {report.evidenceUrl && (
+                        <a
+                          className="button button-ghost"
+                          href={report.evidenceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Файл доказу
+                        </a>
+                      )}
+                      <ReviewDialog
+                        kind="report"
+                        id={report.id}
+                        title={`Доказ: ${student?.fullName ?? ''}`}
+                        evidenceUrl={report.evidenceUrl}
+                      />
+                    </div>
                   </article>
                 );
               })}

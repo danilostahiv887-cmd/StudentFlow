@@ -22,10 +22,19 @@ export default async function AdminApplicationsPage({
   const query = await searchParams;
   const pageSize = Number(query.pageSize ?? 6);
   const needle = query.search?.trim().toLocaleLowerCase('uk-UA');
+  const evidenceByApplication = new Map<string, string[]>();
+
+  for (const report of db.reports) {
+    if (!report.evidenceUrl) continue;
+    const urls = evidenceByApplication.get(report.applicationId) ?? [];
+    if (!urls.includes(report.evidenceUrl)) urls.push(report.evidenceUrl);
+    evidenceByApplication.set(report.applicationId, urls);
+  }
+
   let items = db.applications.map((item) => enrichApplication(db, item));
   if (needle)
     items = items.filter((item) =>
-      `${item.student.fullName} ${item.student.email} ${item.activity.title} ${item.activity.category.name} ${item.motivation} ${item.teacherComment ?? ''}`
+      `${item.student.fullName} ${item.student.email} ${item.activity.title} ${item.activity.category.name} ${item.motivation} ${item.teacherComment ?? ''} ${(evidenceByApplication.get(item.id) ?? []).join(' ')}`
         .toLocaleLowerCase('uk-UA')
         .includes(needle),
     );
@@ -63,24 +72,42 @@ export default async function AdminApplicationsPage({
           </ListControls>
           {result.items.length ? (
             <div className="row-list">
-              {result.items.map((item) => (
-                <article className="data-row route-data-row" key={item.id}>
-                  <div>
-                    <b>{item.student.fullName}</b>
-                    <small>
-                      {item.activity.title} · {item.activity.category.name}
-                    </small>
-                    <p>{item.motivation}</p>
-                  </div>
-                  <StatusBadge status={item.status} />
-                  <small>{item.teacherComment || 'Без коментаря'}</small>
-                  <ReviewDialog
-                    kind="application"
-                    id={item.id}
-                    title={`Маршрут: ${item.student.fullName}`}
-                  />
-                </article>
-              ))}
+              {result.items.map((item) => {
+                const evidenceUrls = evidenceByApplication.get(item.id) ?? [];
+
+                return (
+                  <article className="data-row route-data-row" key={item.id}>
+                    <div>
+                      <b>{item.student.fullName}</b>
+                      <small>
+                        {item.activity.title} · {item.activity.category.name}
+                      </small>
+                      <p>{item.motivation}</p>
+                    </div>
+                    <StatusBadge status={item.status} />
+                    <small>{item.teacherComment || 'Без коментаря'}</small>
+                    <div className="data-row-actions">
+                      {evidenceUrls.map((url, index) => (
+                        <a
+                          className="button button-ghost"
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          key={url}
+                        >
+                          {evidenceUrls.length > 1 ? `Файл ${index + 1}` : 'Файл доказу'}
+                        </a>
+                      ))}
+                      <ReviewDialog
+                        kind="application"
+                        id={item.id}
+                        title={`Маршрут: ${item.student.fullName}`}
+                        evidenceUrls={evidenceUrls}
+                      />
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <EmptyState title="Маршрутів не знайдено" body="Змініть пошук або стан заявки." />
